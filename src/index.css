@@ -420,6 +420,60 @@
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
+.subida-nivel-escolha {
+  width: 100%;
+  max-width: 640px;
+  margin: 4px auto 0;
+  padding: 10px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 12px;
+  background: #eef2ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.subida-nivel-escolha p {
+  margin: 0 0 8px 0;
+  color: #1e293b;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.subida-nivel-botoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subida-nivel-opcao,
+.subida-nivel-cancelar {
+  border: 1px solid #64748b;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subida-nivel-opcao {
+  background: #334155;
+  color: #fff;
+}
+
+.subida-nivel-opcao:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.subida-nivel-cancelar {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.subida-nivel-cancelar:hover {
+  background: #cbd5e1;
+}
+
 /* Panels */
 .painel {
   background: white;

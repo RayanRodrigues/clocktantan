@@ -31,6 +31,7 @@ import {
   type ResultState,
   type FlipState,
   type SkillsState,
+  type LevelUpPlan,
 } from "./utils/gameState";
 
 // ---------- Main App ----------
@@ -76,6 +77,10 @@ export function App() {
   const [pericias, setPericias] = useState<SkillsState>(
     initialState?.pericias ?? initPericias()
   );
+  const [planoSubida, setPlanoSubida] = useState<LevelUpPlan | null>(
+    initialState?.planoSubida ?? null
+  );
+  const [mostrarEscolhaSubida, setMostrarEscolhaSubida] = useState(false);
   const buildPersistedState = useCallback(
     (): PersistedState => ({
       personagemNome,
@@ -91,6 +96,7 @@ export function App() {
       resultados,
       flipped,
       pericias,
+      planoSubida,
     }),
     [
       personagemNome,
@@ -106,6 +112,7 @@ export function App() {
       resultados,
       flipped,
       pericias,
+      planoSubida,
     ]
   );
 
@@ -123,6 +130,7 @@ export function App() {
     setResultados(state.resultados);
     setFlipped(state.flipped);
     setPericias(state.pericias);
+    setPlanoSubida(state.planoSubida);
   }, []);
 
   useEffect(() => {
@@ -239,6 +247,41 @@ export function App() {
         alert("Você não tem mais pontos de acerto para distribuir!");
         return;
       }
+      const planoAtivo = planoSubida && planoSubida.remaining > 0 ? planoSubida : null;
+      let proximoPlano: LevelUpPlan | null = planoAtivo;
+      if (planoAtivo) {
+        if (
+          planoAtivo.mode === "three_different" &&
+          planoAtivo.chosenAttrs.includes(attr)
+        ) {
+          alert("Nesta subida, distribua 1 ponto em atributos diferentes.");
+          return;
+        }
+        if (
+          planoAtivo.mode === "two_same" &&
+          planoAtivo.lockedAttr &&
+          planoAtivo.lockedAttr !== attr
+        ) {
+          alert("Nesta subida, os 2 pontos devem ir no mesmo atributo.");
+          return;
+        }
+        const chosenAttrs = planoAtivo.chosenAttrs.includes(attr)
+          ? planoAtivo.chosenAttrs
+          : [...planoAtivo.chosenAttrs, attr];
+        const lockedAttr =
+          planoAtivo.mode === "two_same" ? planoAtivo.lockedAttr ?? attr : null;
+        const remaining = planoAtivo.remaining - 1;
+        proximoPlano =
+          remaining > 0
+            ? {
+                ...planoAtivo,
+                chosenAttrs,
+                lockedAttr,
+                remaining,
+              }
+            : null;
+      }
+
       const novoAcertos = {
         ...acertosComuns,
         [attr]: acertosComuns[attr] + 1,
@@ -267,8 +310,15 @@ export function App() {
         });
         return next;
       });
+      setPlanoSubida(proximoPlano);
     },
-    [acertosComuns, criticosExtras, normalizeCriticosExtras, pontosDistribuir]
+    [
+      acertosComuns,
+      criticosExtras,
+      normalizeCriticosExtras,
+      planoSubida,
+      pontosDistribuir,
+    ]
   );
 
   const handleDecrement = useCallback(
@@ -309,10 +359,35 @@ export function App() {
     [acertosComuns, criticosExtras, normalizeCriticosExtras]
   );
 
-  const handleSubirNivel = useCallback(() => {
+  const aplicarSubidaNivel = useCallback((mode: LevelUpPlan["mode"]) => {
     setNivel((prev) => prev + 1);
-    setPontosDistribuir((prev) => prev + 2);
+    if (mode === "three_different") {
+      setPontosDistribuir((prev) => prev + 3);
+      setPlanoSubida({
+        mode: "three_different",
+        remaining: 3,
+        chosenAttrs: [],
+        lockedAttr: null,
+      });
+    } else {
+      setPontosDistribuir((prev) => prev + 2);
+      setPlanoSubida({
+        mode: "two_same",
+        remaining: 2,
+        chosenAttrs: [],
+        lockedAttr: null,
+      });
+    }
+    setMostrarEscolhaSubida(false);
   }, []);
+
+  const handleSubirNivel = useCallback(() => {
+    if (planoSubida && planoSubida.remaining > 0) {
+      alert("Finalize a distribuição da subida atual antes de subir novamente.");
+      return;
+    }
+    setMostrarEscolhaSubida((prev) => !prev);
+  }, [planoSubida]);
 
   const handleConverterAcertoEmCritico = useCallback(
     (attr: string) => {
@@ -536,8 +611,45 @@ export function App() {
             onClick={handleSubirNivel}
             className="py-2 px-5 border-2 border-slate-500 bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
           >
-            ⬆ Subir Nível (+2 acertos)
+            ⬆ Subir Nível
           </button>
+          {planoSubida && (
+            <span className="text-xs text-slate-600 font-semibold">
+              {planoSubida.mode === "three_different"
+                ? `Subida ativa: ${planoSubida.remaining} ponto(s) restante(s), em atributos diferentes.`
+                : `Subida ativa: ${planoSubida.remaining} ponto(s) restante(s), no mesmo atributo${
+                    planoSubida.lockedAttr ? ` (${planoSubida.lockedAttr})` : ""
+                  }.`}
+            </span>
+          )}
+          {mostrarEscolhaSubida && (
+            <div className="subida-nivel-escolha">
+              <p>Escolha o bônus desta subida:</p>
+              <div className="subida-nivel-botoes">
+                <button
+                  type="button"
+                  className="subida-nivel-opcao"
+                  onClick={() => aplicarSubidaNivel("three_different")}
+                >
+                  +3 em atributos diferentes
+                </button>
+                <button
+                  type="button"
+                  className="subida-nivel-opcao"
+                  onClick={() => aplicarSubidaNivel("two_same")}
+                >
+                  +2 no mesmo atributo
+                </button>
+                <button
+                  type="button"
+                  className="subida-nivel-cancelar"
+                  onClick={() => setMostrarEscolhaSubida(false)}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="principal">

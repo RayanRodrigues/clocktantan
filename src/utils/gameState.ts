@@ -33,6 +33,15 @@ export interface SkillMark {
 
 export type SkillsState = Record<string, SkillMark>;
 
+export type LevelUpMode = "three_different" | "two_same";
+
+export interface LevelUpPlan {
+  mode: LevelUpMode;
+  remaining: number;
+  chosenAttrs: string[];
+  lockedAttr: string | null;
+}
+
 export interface AttrTheme {
   icon: string;
   emoji: string;
@@ -245,6 +254,7 @@ export interface PersistedState {
   resultados: ResultState;
   flipped: FlipState;
   pericias: SkillsState;
+  planoSubida: LevelUpPlan | null;
 }
 
 export type CloudState = Omit<PersistedState, "decks" | "resultados" | "flipped">;
@@ -367,6 +377,27 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
   const anotacoes = typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
   const anotacoesHorizonte =
     typeof parsed.anotacoesHorizonte === "string" ? parsed.anotacoesHorizonte : "";
+  const planoRaw = parsed.planoSubida;
+  const planoSubida: LevelUpPlan | null =
+    planoRaw &&
+    typeof planoRaw === "object" &&
+    (planoRaw.mode === "three_different" || planoRaw.mode === "two_same") &&
+    typeof planoRaw.remaining === "number" &&
+    Number.isFinite(planoRaw.remaining) &&
+    planoRaw.remaining > 0 &&
+    Array.isArray(planoRaw.chosenAttrs)
+      ? {
+          mode: planoRaw.mode,
+          remaining: Math.floor(planoRaw.remaining),
+          chosenAttrs: planoRaw.chosenAttrs.filter(
+            (attr): attr is string => typeof attr === "string" && ATRIBUTOS.includes(attr)
+          ),
+          lockedAttr:
+            typeof planoRaw.lockedAttr === "string" && ATRIBUTOS.includes(planoRaw.lockedAttr)
+              ? planoRaw.lockedAttr
+              : null,
+        }
+      : null;
 
   return {
     personagemNome,
@@ -382,6 +413,7 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     resultados,
     flipped,
     pericias,
+    planoSubida,
   };
 }
 
