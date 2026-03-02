@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import { DeckCard } from "./components/DeckCard";
+import { NotesEditor } from "./components/NotesEditor";
 import { auth, db } from "./firebase";
 import {
   BASE_PERICIA,
@@ -61,8 +62,6 @@ export function App() {
   const [anotacoesHorizonte, setAnotacoesHorizonte] = useState(
     initialState?.anotacoesHorizonte ?? ""
   );
-  const anotacoesEditorRef = useRef<HTMLDivElement | null>(null);
-  const anotacoesHorizonteEditorRef = useRef<HTMLDivElement | null>(null);
   const [nivel, setNivel] = useState(initialState?.nivel ?? 1);
   const [pontosDistribuir, setPontosDistribuir] = useState(
     initialState?.pontosDistribuir ?? 21
@@ -478,62 +477,6 @@ export function App() {
     }
     setPersonagemImagem(raw);
   }, [personagemImagemLink]);
-
-  const syncAnotacoesFromEditor = useCallback(() => {
-    setAnotacoes(anotacoesEditorRef.current?.innerHTML ?? "");
-  }, []);
-
-  const syncAnotacoesHorizonteFromEditor = useCallback(() => {
-    setAnotacoesHorizonte(anotacoesHorizonteEditorRef.current?.innerHTML ?? "");
-  }, []);
-
-  const handleFormatClick = useCallback(
-    (
-      editor: "caracteristicas" | "horizonte",
-      command: "bold" | "italic" | "underline" | "insertUnorderedList"
-    ) => {
-      document.execCommand(command, false);
-      if (editor === "horizonte") {
-        syncAnotacoesHorizonteFromEditor();
-        anotacoesHorizonteEditorRef.current?.focus();
-        return;
-      }
-      syncAnotacoesFromEditor();
-      anotacoesEditorRef.current?.focus();
-    },
-    [syncAnotacoesFromEditor, syncAnotacoesHorizonteFromEditor]
-  );
-
-  const handleFontSizeChange = useCallback(
-    (editor: "caracteristicas" | "horizonte", size: string) => {
-      if (!size) return;
-      document.execCommand("fontSize", false, size);
-      if (editor === "horizonte") {
-        syncAnotacoesHorizonteFromEditor();
-        anotacoesHorizonteEditorRef.current?.focus();
-        return;
-      }
-      syncAnotacoesFromEditor();
-      anotacoesEditorRef.current?.focus();
-    },
-    [syncAnotacoesFromEditor, syncAnotacoesHorizonteFromEditor]
-  );
-
-  useEffect(() => {
-    const editor = anotacoesEditorRef.current;
-    if (!editor) return;
-    if (editor.innerHTML !== anotacoes) {
-      editor.innerHTML = anotacoes;
-    }
-  }, [anotacoes]);
-
-  useEffect(() => {
-    const editor = anotacoesHorizonteEditorRef.current;
-    if (!editor) return;
-    if (editor.innerHTML !== anotacoesHorizonte) {
-      editor.innerHTML = anotacoesHorizonte;
-    }
-  }, [anotacoesHorizonte]);
 
   const totalPlus25 = TODAS_PERICIAS.filter(
     (nome) => pericias[nome].bonus === "plus25"
@@ -1074,69 +1017,13 @@ export function App() {
             <p>Falha: tempo passa, nova tentativa custa mais.</p>
           </div>
 
-          <div className="painel">
-            <h2 className="panel-title">
-              <i className="fas fa-sticky-note"></i> Anotações
-            </h2>
-            <div className="anotacoes-toolbar">
-              <button
-                type="button"
-                onClick={() => handleFormatClick("horizonte", "bold")}
-                title="Negrito"
-              >
-                <strong>B</strong>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFormatClick("horizonte", "italic")}
-                title="Itálico"
-              >
-                <em>I</em>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFormatClick("horizonte", "underline")}
-                title="Sublinhado"
-              >
-                <u>U</u>
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleFormatClick("horizonte", "insertUnorderedList")
-                }
-                title="Lista"
-              >
-                • Lista
-              </button>
-              <select
-                defaultValue=""
-                onChange={(e) => {
-                  handleFontSizeChange("horizonte", e.target.value);
-                  e.currentTarget.value = "";
-                }}
-                title="Tamanho da fonte"
-              >
-                <option value="" disabled>
-                  Fonte
-                </option>
-                <option value="1">Pequena</option>
-                <option value="2">Normal</option>
-                <option value="3">Média</option>
-                <option value="4">Grande</option>
-                <option value="5">Muito grande</option>
-              </select>
-            </div>
-            <div
-              ref={anotacoesHorizonteEditorRef}
-              className="anotacoes-editor"
-              contentEditable
-              suppressContentEditableWarning
-              data-placeholder="Registre custos de tempo, consequências e urgências da cena..."
-              onInput={syncAnotacoesHorizonteFromEditor}
-              onBlur={syncAnotacoesHorizonteFromEditor}
-            />
-          </div>
+          <NotesEditor
+            title="Anotações"
+            iconClass="fas fa-sticky-note"
+            value={anotacoesHorizonte}
+            onChange={setAnotacoesHorizonte}
+            placeholder="Registre custos de tempo, consequências e urgências da cena..."
+          />
 
           {/* Perícias & Engenhosidade */}
           <div className="painel pericias-painel">
@@ -1288,69 +1175,14 @@ export function App() {
             </div>
           </div>
 
-          <div className="painel anotacoes-painel">
-            <h2 className="panel-title">
-              <i className="fas fa-pen"></i> Características do personagem
-            </h2>
-            <div className="anotacoes-toolbar">
-              <button
-                type="button"
-                onClick={() => handleFormatClick("caracteristicas", "bold")}
-                title="Negrito"
-              >
-                <strong>B</strong>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFormatClick("caracteristicas", "italic")}
-                title="Itálico"
-              >
-                <em>I</em>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFormatClick("caracteristicas", "underline")}
-                title="Sublinhado"
-              >
-                <u>U</u>
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleFormatClick("caracteristicas", "insertUnorderedList")
-                }
-                title="Lista"
-              >
-                • Lista
-              </button>
-              <select
-                defaultValue=""
-                onChange={(e) => {
-                  handleFontSizeChange("caracteristicas", e.target.value);
-                  e.currentTarget.value = "";
-                }}
-                title="Tamanho da fonte"
-              >
-                <option value="" disabled>
-                  Fonte
-                </option>
-                <option value="1">Pequena</option>
-                <option value="2">Normal</option>
-                <option value="3">Média</option>
-                <option value="4">Grande</option>
-                <option value="5">Muito grande</option>
-              </select>
-            </div>
-            <div
-              ref={anotacoesEditorRef}
-              className="anotacoes-editor"
-              contentEditable
-              suppressContentEditableWarning
-              data-placeholder="Escreva observações da sessão, ideias de cena, nomes, pistas..."
-              onInput={syncAnotacoesFromEditor}
-              onBlur={syncAnotacoesFromEditor}
-            />
-          </div>
+          <NotesEditor
+            title="Características do personagem"
+            iconClass="fas fa-pen"
+            value={anotacoes}
+            onChange={setAnotacoes}
+            placeholder="Escreva observações da sessão, ideias de cena, nomes, pistas..."
+            panelClassName="anotacoes-painel"
+          />
         </div>
       </div>
     </div>
