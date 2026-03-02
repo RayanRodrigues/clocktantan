@@ -1877,11 +1877,11 @@ export function App() {
                 <option value="" disabled>
                   Fonte
                 </option>
-                <option value="2">Pequena</option>
-                <option value="3">Normal</option>
-                <option value="4">Média</option>
-                <option value="5">Grande</option>
-                <option value="6">Muito grande</option>
+                <option value="1">Pequena</option>
+                <option value="2">Normal</option>
+                <option value="3">Média</option>
+                <option value="4">Grande</option>
+                <option value="5">Muito grande</option>
               </select>
             </div>
             <div
@@ -2091,11 +2091,11 @@ export function App() {
                 <option value="" disabled>
                   Fonte
                 </option>
-                <option value="2">Pequena</option>
-                <option value="3">Normal</option>
-                <option value="4">Média</option>
-                <option value="5">Grande</option>
-                <option value="6">Muito grande</option>
+                <option value="1">Pequena</option>
+                <option value="2">Normal</option>
+                <option value="3">Média</option>
+                <option value="4">Grande</option>
+                <option value="5">Muito grande</option>
               </select>
             </div>
             <div
