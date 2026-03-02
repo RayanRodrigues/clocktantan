@@ -139,6 +139,10 @@ export function App() {
   const sabedoriaTotal =
     (acertosComuns["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) +
     ACERTOS_CRITICOS_FIXOS;
+  const engenhosidadeTotal = Math.max(
+    0,
+    sabedoriaTotal - (ACERTOS_INICIAIS_COMUNS + ACERTOS_CRITICOS_FIXOS)
+  );
 
   const handlePuxar = useCallback(
     (attr: string) => {
@@ -316,7 +320,7 @@ export function App() {
           (acc, nome) => acc + (prev[nome].engStacks || 0),
           0
         );
-        if (totalEngAtual >= sabedoriaTotal) {
+        if (totalEngAtual >= engenhosidadeTotal) {
           alert("Sem pontos de engenhosidade disponíveis.");
           return prev;
         }
@@ -336,7 +340,7 @@ export function App() {
         };
       });
     },
-    [sabedoriaTotal]
+    [engenhosidadeTotal]
   );
 
   const handleDecrementEngPericia = useCallback((nomePericia: string) => {
@@ -482,7 +486,7 @@ export function App() {
           {/* Perícias & Engenhosidade */}
           <SkillsPanel
             pericias={pericias}
-            sabedoriaTotal={sabedoriaTotal}
+            engenhosidadeTotal={engenhosidadeTotal}
             onToggleBonusPericia={handleToggleBonusPericia}
             onToggleProficienciaPericia={handleToggleProficienciaPericia}
             onIncrementEngPericia={handleIncrementEngPericia}

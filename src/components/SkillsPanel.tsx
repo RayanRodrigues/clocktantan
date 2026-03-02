@@ -8,7 +8,7 @@ import {
 
 interface SkillsPanelProps {
   pericias: SkillsState;
-  sabedoriaTotal: number;
+  engenhosidadeTotal: number;
   onToggleBonusPericia: (nomePericia: string, bonus: "plus15" | "plus25") => void;
   onToggleProficienciaPericia: (nomePericia: string) => void;
   onIncrementEngPericia: (nomePericia: string) => void;
@@ -17,7 +17,7 @@ interface SkillsPanelProps {
 
 export function SkillsPanel({
   pericias,
-  sabedoriaTotal,
+  engenhosidadeTotal,
   onToggleBonusPericia,
   onToggleProficienciaPericia,
   onIncrementEngPericia,
@@ -36,7 +36,7 @@ export function SkillsPanel({
     (acc, nome) => acc + (pericias[nome].engStacks || 0),
     0
   );
-  const engDisponivel = sabedoriaTotal - totalEngGastos;
+  const engDisponivel = engenhosidadeTotal - totalEngGastos;
 
   return (
     <div className="painel pericias-painel">
@@ -60,10 +60,11 @@ export function SkillsPanel({
         </li>
       </ul>
       <p className="text-sm">
-        <strong>Engenhosidade:</strong> Cada ponto de Sabedoria (acerto) dá{" "}
-        <strong>4%</strong> para distribuir em qualquer perícia (máximo 80% por
-        perícia). Disponível: <strong>{Math.max(0, engDisponivel)}</strong> /{" "}
-        {sabedoriaTotal} (gastos: {totalEngGastos}).
+        <strong>Engenhosidade:</strong> Cada ponto de Sabedoria acima do padrão
+        inicial dá <strong>4%</strong> para distribuir em qualquer perícia
+        (máximo 80% por perícia). Disponível:{" "}
+        <strong>{Math.max(0, engDisponivel)}</strong> / {engenhosidadeTotal}{" "}
+        (gastos: {totalEngGastos}).
       </p>
 
       <div className="pericias-contadores">
@@ -77,7 +78,7 @@ export function SkillsPanel({
           PROF ({totalProficientes}/{PERICIA_LIMITES.proficient})
         </span>
         <span className="contador contador-eng">
-          ENG ({totalEngGastos}/{sabedoriaTotal})
+          ENG ({totalEngGastos}/{engenhosidadeTotal})
         </span>
       </div>
 
