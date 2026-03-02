@@ -1586,6 +1586,51 @@ export function App() {
 
           {/* Painel lateral: Afinidade */}
           <div className="info-section">
+            <div className="painel personagem-foto-painel">
+              <h2 className="panel-title">
+                <i className="fas fa-image"></i> Retrato do Personagem
+              </h2>
+
+              <div className="personagem-foto-box">
+                {personagemImagem ? (
+                  <img
+                    src={personagemImagem}
+                    alt="Retrato do personagem"
+                    className="personagem-foto-img"
+                  />
+                ) : (
+                  <div className="personagem-foto-placeholder">
+                    Sem imagem
+                  </div>
+                )}
+              </div>
+
+              <div className="personagem-foto-acoes">
+                <button
+                  type="button"
+                  className="personagem-foto-btn personagem-foto-remover"
+                  onClick={() => setPersonagemImagem("")}
+                  disabled={!personagemImagem}
+                >
+                  <i className="fas fa-trash"></i> Remover
+                </button>
+              </div>
+              <div className="personagem-foto-link">
+                <input
+                  type="url"
+                  value={personagemImagemLink}
+                  onChange={(e) => setPersonagemImagemLink(e.target.value)}
+                  placeholder="Cole um link de imagem (https://...)"
+                />
+                <button
+                  type="button"
+                  className="personagem-foto-btn"
+                  onClick={handleUsarImagemPorLink}
+                >
+                  Usar link
+                </button>
+              </div>
+            </div>
             <div className="painel">
               <h2 className="panel-title">
                 <i className="fas fa-handshake"></i> Afinidade (Carisma)
@@ -1655,51 +1700,6 @@ export function App() {
               <p className="mt-2 text-xs text-gray-600">
                 Espaço de artefatos: 1º:1, 2º:3, 3º:4, 4º:7, 5º:11
               </p>
-            </div>
-            <div className="painel personagem-foto-painel">
-              <h2 className="panel-title">
-                <i className="fas fa-image"></i> Retrato do Personagem
-              </h2>
-
-              <div className="personagem-foto-box">
-                {personagemImagem ? (
-                  <img
-                    src={personagemImagem}
-                    alt="Retrato do personagem"
-                    className="personagem-foto-img"
-                  />
-                ) : (
-                  <div className="personagem-foto-placeholder">
-                    Sem imagem
-                  </div>
-                )}
-              </div>
-
-              <div className="personagem-foto-acoes">
-                <button
-                  type="button"
-                  className="personagem-foto-btn personagem-foto-remover"
-                  onClick={() => setPersonagemImagem("")}
-                  disabled={!personagemImagem}
-                >
-                  <i className="fas fa-trash"></i> Remover
-                </button>
-              </div>
-              <div className="personagem-foto-link">
-                <input
-                  type="url"
-                  value={personagemImagemLink}
-                  onChange={(e) => setPersonagemImagemLink(e.target.value)}
-                  placeholder="Cole um link de imagem (https://...)"
-                />
-                <button
-                  type="button"
-                  className="personagem-foto-btn"
-                  onClick={handleUsarImagemPorLink}
-                >
-                  Usar link
-                </button>
-              </div>
             </div>
           </div>
         </div>

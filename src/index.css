@@ -81,6 +81,9 @@
 .info-section {
   flex: 1;
   min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .decks-grid {
@@ -427,7 +430,7 @@
 }
 
 .personagem-foto-painel {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .personagem-foto-box {
