@@ -136,7 +136,7 @@ const ATRIBUTOS = [
 const ACERTOS_CRITICOS_FIXOS = 1;
 const ERROS_COMUNS_FIXOS = 11;
 const ERROS_CRITICOS_FIXOS = 1;
-const ACERTOS_INICIAIS_COMUNS = 9;
+const ACERTOS_INICIAIS_COMUNS = 8;
 const STORAGE_KEY = "clock_tantan_state_v1";
 const BASE_PERICIA = 15;
 const PERICIA_LIMITES = {
@@ -1253,6 +1253,21 @@ export function App() {
     [syncAnotacoesFromEditor, syncAnotacoesHorizonteFromEditor]
   );
 
+  const handleFontSizeChange = useCallback(
+    (editor: "caracteristicas" | "horizonte", size: string) => {
+      if (!size) return;
+      document.execCommand("fontSize", false, size);
+      if (editor === "horizonte") {
+        syncAnotacoesHorizonteFromEditor();
+        anotacoesHorizonteEditorRef.current?.focus();
+        return;
+      }
+      syncAnotacoesFromEditor();
+      anotacoesEditorRef.current?.focus();
+    },
+    [syncAnotacoesFromEditor, syncAnotacoesHorizonteFromEditor]
+  );
+
   useEffect(() => {
     const editor = anotacoesEditorRef.current;
     if (!editor) return;
@@ -1851,6 +1866,23 @@ export function App() {
               >
                 • Lista
               </button>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  handleFontSizeChange("horizonte", e.target.value);
+                  e.currentTarget.value = "";
+                }}
+                title="Tamanho da fonte"
+              >
+                <option value="" disabled>
+                  Fonte
+                </option>
+                <option value="2">Pequena</option>
+                <option value="3">Normal</option>
+                <option value="4">Média</option>
+                <option value="5">Grande</option>
+                <option value="6">Muito grande</option>
+              </select>
             </div>
             <div
               ref={anotacoesHorizonteEditorRef}
@@ -2048,6 +2080,23 @@ export function App() {
               >
                 • Lista
               </button>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  handleFontSizeChange("caracteristicas", e.target.value);
+                  e.currentTarget.value = "";
+                }}
+                title="Tamanho da fonte"
+              >
+                <option value="" disabled>
+                  Fonte
+                </option>
+                <option value="2">Pequena</option>
+                <option value="3">Normal</option>
+                <option value="4">Média</option>
+                <option value="5">Grande</option>
+                <option value="6">Muito grande</option>
+              </select>
             </div>
             <div
               ref={anotacoesEditorRef}
@@ -2064,4 +2113,3 @@ export function App() {
     </div>
   );
 }
-
