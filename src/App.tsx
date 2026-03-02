@@ -136,7 +136,7 @@ const ATRIBUTOS = [
 const ACERTOS_CRITICOS_FIXOS = 1;
 const ERROS_COMUNS_FIXOS = 11;
 const ERROS_CRITICOS_FIXOS = 1;
-const ACERTOS_INICIAIS_COMUNS = 8;
+const ACERTOS_INICIAIS_COMUNS = 9;
 const STORAGE_KEY = "clock_tantan_state_v1";
 const BASE_PERICIA = 15;
 const PERICIA_LIMITES = {
@@ -271,8 +271,8 @@ function normalizePersistedState(parsed: Partial<PersistedState>): PersistedStat
   const acertos = initAcertos();
   ATRIBUTOS.forEach((attr) => {
     const value = parsed.acertosComuns?.[attr];
-    if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
-      acertos[attr] = value;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      acertos[attr] = Math.max(ACERTOS_INICIAIS_COMUNS, Math.floor(value));
     }
   });
 
@@ -866,7 +866,7 @@ export function App() {
 
       const ref = doc(db, "characters", uid);
       const snap = await getDoc(ref);
-      if (desiredCharacterUidRef.current !== uid) return;
+      if (desiredCharacterUidRef.current && desiredCharacterUidRef.current !== uid) return;
 
       if (snap.exists()) {
         const data = snap.data() as {
@@ -971,6 +971,9 @@ export function App() {
       setAuthUser(user);
       loadedCloudUidRef.current = null;
       if (!user) {
+        desiredCharacterUidRef.current = null;
+        skipCloudSaveRef.current = true;
+        applyPersistedState(normalizePersistedState({}));
         setIsAdmin(false);
         setActiveCharacterUid(null);
         setCharactersList([]);
@@ -981,9 +984,11 @@ export function App() {
       try {
         const token = await user.getIdTokenResult();
         const admin = token.claims.admin === true;
+        desiredCharacterUidRef.current = user.uid;
         setIsAdmin(admin);
         setActiveCharacterUid(user.uid);
       } catch {
+        desiredCharacterUidRef.current = user.uid;
         setIsAdmin(false);
         setActiveCharacterUid(user.uid);
       } finally {
