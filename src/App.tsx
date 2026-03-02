@@ -17,6 +17,7 @@ import {
   criarDeck,
   criarTodosDecks,
   getMaxEngStacksForBonus,
+  getSkillBonusTotal,
   initAcertos,
   initFlipped,
   initPericias,
@@ -241,32 +242,36 @@ export function App() {
     (nomePericia: string, bonus: "plus15" | "plus25") => {
       setPericias((prev) => {
         const atual = prev[nomePericia] ?? {
-          bonus: "none",
+          plus15: false,
+          plus25: false,
           proficient: false,
           engStacks: 0,
         };
-        const total25 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus25").length;
-        const total15 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus15").length;
-        const removendoMesmo = atual.bonus === bonus;
+        const total25 = TODAS_PERICIAS.filter((n) => prev[n].plus25).length;
+        const total15 = TODAS_PERICIAS.filter((n) => prev[n].plus15).length;
+        const ativandoPlus25 = bonus === "plus25" && !atual.plus25;
+        const ativandoPlus15 = bonus === "plus15" && !atual.plus15;
 
-        if (!removendoMesmo) {
-          if (bonus === "plus25" && atual.bonus !== "plus25" && total25 >= PERICIA_LIMITES.plus25) {
+        if (ativandoPlus25 && total25 >= PERICIA_LIMITES.plus25) {
             alert("Limite de 3 perícias com +25% atingido.");
             return prev;
-          }
-          if (bonus === "plus15" && atual.bonus !== "plus15" && total15 >= PERICIA_LIMITES.plus15) {
+        }
+        if (ativandoPlus15 && total15 >= PERICIA_LIMITES.plus15) {
             alert("Limite de 3 perícias com +15% atingido.");
             return prev;
-          }
         }
 
-        const novoBonus = removendoMesmo ? "none" : bonus;
-        const maxStacks = getMaxEngStacksForBonus(novoBonus);
+        const novoPlus25 = bonus === "plus25" ? !atual.plus25 : atual.plus25;
+        const novoPlus15 = bonus === "plus15" ? !atual.plus15 : atual.plus15;
+        const maxStacks = getMaxEngStacksForBonus(
+          getSkillBonusTotal({ plus25: novoPlus25, plus15: novoPlus15 })
+        );
         return {
           ...prev,
           [nomePericia]: {
             ...atual,
-            bonus: novoBonus,
+            plus25: novoPlus25,
+            plus15: novoPlus15,
             engStacks: Math.min(atual.engStacks, maxStacks),
           },
         };
@@ -278,7 +283,8 @@ export function App() {
   const handleToggleProficienciaPericia = useCallback((nomePericia: string) => {
     setPericias((prev) => {
       const atual = prev[nomePericia] ?? {
-        bonus: "none",
+        plus15: false,
+        plus25: false,
         proficient: false,
         engStacks: 0,
       };
@@ -301,7 +307,8 @@ export function App() {
     (nomePericia: string) => {
       setPericias((prev) => {
         const atual = prev[nomePericia] ?? {
-          bonus: "none",
+          plus15: false,
+          plus25: false,
           proficient: false,
           engStacks: 0,
         };
@@ -313,7 +320,9 @@ export function App() {
           alert("Sem pontos de engenhosidade disponíveis.");
           return prev;
         }
-        const maxStacks = getMaxEngStacksForBonus(atual.bonus);
+        const maxStacks = getMaxEngStacksForBonus(
+          getSkillBonusTotal({ plus25: atual.plus25, plus15: atual.plus15 })
+        );
         if (atual.engStacks >= maxStacks) {
           alert("Essa perícia já está no limite de 80%.");
           return prev;
@@ -333,7 +342,8 @@ export function App() {
   const handleDecrementEngPericia = useCallback((nomePericia: string) => {
     setPericias((prev) => {
       const atual = prev[nomePericia] ?? {
-        bonus: "none",
+        plus15: false,
+        plus25: false,
         proficient: false,
         engStacks: 0,
       };

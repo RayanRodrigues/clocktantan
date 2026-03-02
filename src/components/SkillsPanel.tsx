@@ -24,10 +24,10 @@ export function SkillsPanel({
   onDecrementEngPericia,
 }: SkillsPanelProps) {
   const totalPlus25 = TODAS_PERICIAS.filter(
-    (nome) => pericias[nome].bonus === "plus25"
+    (nome) => pericias[nome].plus25
   ).length;
   const totalPlus15 = TODAS_PERICIAS.filter(
-    (nome) => pericias[nome].bonus === "plus15"
+    (nome) => pericias[nome].plus15
   ).length;
   const totalProficientes = TODAS_PERICIAS.filter(
     (nome) => pericias[nome].proficient
@@ -93,11 +93,8 @@ export function SkillsPanel({
                 const engBonus = (mark.engStacks || 0) * 4;
                 const percentual =
                   BASE_PERICIA +
-                  (mark.bonus === "plus25"
-                    ? 25
-                    : mark.bonus === "plus15"
-                    ? 15
-                    : 0) +
+                  (mark.plus25 ? 25 : 0) +
+                  (mark.plus15 ? 15 : 0) +
                   engBonus;
                 return (
                   <li key={nomePericia} className="pericia-item">
@@ -109,7 +106,7 @@ export function SkillsPanel({
                       <button
                         type="button"
                         className={`pericia-tag-btn ${
-                          mark.bonus === "plus25" ? "ativo-25" : ""
+                          mark.plus25 ? "ativo-25" : ""
                         }`}
                         onClick={() => onToggleBonusPericia(nomePericia, "plus25")}
                       >
@@ -118,7 +115,7 @@ export function SkillsPanel({
                       <button
                         type="button"
                         className={`pericia-tag-btn ${
-                          mark.bonus === "plus15" ? "ativo-15" : ""
+                          mark.plus15 ? "ativo-15" : ""
                         }`}
                         onClick={() => onToggleBonusPericia(nomePericia, "plus15")}
                       >
@@ -153,10 +150,10 @@ export function SkillsPanel({
                       </button>
                     </div>
                     <div className="pericia-badges">
-                      {mark.bonus === "plus25" && (
+                      {mark.plus25 && (
                         <span className="badge badge-25">+25%</span>
                       )}
-                      {mark.bonus === "plus15" && (
+                      {mark.plus15 && (
                         <span className="badge badge-15">+15%</span>
                       )}
                       {mark.proficient && (

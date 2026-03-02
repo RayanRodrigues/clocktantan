@@ -20,10 +20,9 @@ export interface FlipState {
   [attr: string]: boolean;
 }
 
-export type SkillBonus = "none" | "plus15" | "plus25";
-
 export interface SkillMark {
-  bonus: SkillBonus;
+  plus15: boolean;
+  plus25: boolean;
   proficient: boolean;
   engStacks: number;
 }
@@ -144,14 +143,12 @@ export const PERICIAS_POR_CATEGORIA: Record<string, string[]> = {
 };
 export const TODAS_PERICIAS = Object.values(PERICIAS_POR_CATEGORIA).flat();
 
-export function getSkillBonusValue(bonus: SkillBonus): number {
-  if (bonus === "plus25") return 25;
-  if (bonus === "plus15") return 15;
-  return 0;
+export function getSkillBonusTotal(mark: Pick<SkillMark, "plus15" | "plus25">): number {
+  return (mark.plus25 ? 25 : 0) + (mark.plus15 ? 15 : 0);
 }
 
-export function getMaxEngStacksForBonus(bonus: SkillBonus): number {
-  const maxByPercent = Math.floor((80 - BASE_PERICIA - getSkillBonusValue(bonus)) / 4);
+export function getMaxEngStacksForBonus(bonusTotal: number): number {
+  const maxByPercent = Math.floor((80 - BASE_PERICIA - bonusTotal) / 4);
   return Math.max(0, maxByPercent);
 }
 
@@ -212,7 +209,7 @@ export function initFlipped(): FlipState {
 export function initPericias(): SkillsState {
   const pericias: SkillsState = {};
   TODAS_PERICIAS.forEach((nome) => {
-    pericias[nome] = { bonus: "none", proficient: false, engStacks: 0 };
+    pericias[nome] = { plus15: false, plus25: false, proficient: false, engStacks: 0 };
   });
   return pericias;
 }
@@ -282,11 +279,19 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
   TODAS_PERICIAS.forEach((nome) => {
     const saved = parsed.pericias?.[nome];
     if (!saved || typeof saved !== "object") return;
-    const bonusRaw = (saved as Partial<SkillMark>).bonus;
+    const bonusRaw = (saved as { bonus?: string }).bonus;
+    const plus15Raw = (saved as Partial<SkillMark>).plus15;
+    const plus25Raw = (saved as Partial<SkillMark>).plus25;
     const proficientRaw = (saved as Partial<SkillMark>).proficient;
     const engStacksRaw = (saved as Partial<SkillMark>).engStacks;
-    const bonus: SkillBonus =
-      bonusRaw === "plus15" || bonusRaw === "plus25" ? bonusRaw : "none";
+    const plus15 =
+      typeof plus15Raw === "boolean"
+        ? plus15Raw
+        : bonusRaw === "plus15";
+    const plus25 =
+      typeof plus25Raw === "boolean"
+        ? plus25Raw
+        : bonusRaw === "plus25";
     const proficient = typeof proficientRaw === "boolean" ? proficientRaw : false;
     const engStacks =
       typeof engStacksRaw === "number" &&
@@ -295,9 +300,13 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
         ? Math.floor(engStacksRaw)
         : 0;
     pericias[nome] = {
-      bonus,
+      plus15,
+      plus25,
       proficient,
-      engStacks: Math.min(engStacks, getMaxEngStacksForBonus(bonus)),
+      engStacks: Math.min(
+        engStacks,
+        getMaxEngStacksForBonus(getSkillBonusTotal({ plus15, plus25 }))
+      ),
     };
   });
 
