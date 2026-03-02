@@ -23,6 +23,15 @@ interface FlipState {
   [attr: string]: boolean;
 }
 
+type SkillBonus = "none" | "plus15" | "plus25";
+
+interface SkillMark {
+  bonus: SkillBonus;
+  proficient: boolean;
+}
+
+type SkillsState = Record<string, SkillMark>;
+
 // ---------- Attribute Themes ----------
 interface AttrTheme {
   icon: string;
@@ -119,6 +128,25 @@ const ERROS_COMUNS_FIXOS = 11;
 const ERROS_CRITICOS_FIXOS = 1;
 const ACERTOS_INICIAIS_COMUNS = 8;
 const STORAGE_KEY = "clock_tantan_state_v1";
+const BASE_PERICIA = 15;
+const PERICIA_LIMITES = {
+  plus25: 3,
+  plus15: 3,
+  proficient: 2,
+} as const;
+const PERICIAS_POR_CATEGORIA: Record<string, string[]> = {
+  Físicas: ["Acrobacia", "Atletismo", "Furtividade", "Prestidigitação"],
+  Sociais: ["Atuação", "Enganação", "Intimidação", "Intuição", "Persuasão"],
+  Conhecimento: ["Arcanismo", "História", "Natureza", "Religião"],
+  Práticas: [
+    "Investigação",
+    "Medicina",
+    "Percepção",
+    "Sobrevivência",
+    "Adestrar Animais",
+  ],
+};
+const TODAS_PERICIAS = Object.values(PERICIAS_POR_CATEGORIA).flat();
 
 // ---------- Helpers ----------
 function embaralhar(arr: Card[]): Card[] {
@@ -173,17 +201,27 @@ function initFlipped(): FlipState {
   return f;
 }
 
+function initPericias(): SkillsState {
+  const pericias: SkillsState = {};
+  TODAS_PERICIAS.forEach((nome) => {
+    pericias[nome] = { bonus: "none", proficient: false };
+  });
+  return pericias;
+}
+
 interface PersistedState {
   personagemNome: string;
   personagemIdade: string;
   personagemImagem: string;
   anotacoes: string;
+  anotacoesHorizonte: string;
   nivel: number;
   pontosDistribuir: number;
   acertosComuns: AccuracyState;
   decks: DeckState;
   resultados: ResultState;
   flipped: FlipState;
+  pericias: SkillsState;
 }
 
 function isCard(value: unknown): value is Card {
@@ -238,6 +276,18 @@ function loadPersistedState(): PersistedState | null {
       }
     });
 
+    const pericias = initPericias();
+    TODAS_PERICIAS.forEach((nome) => {
+      const saved = parsed.pericias?.[nome];
+      if (!saved || typeof saved !== "object") return;
+      const bonusRaw = (saved as Partial<SkillMark>).bonus;
+      const proficientRaw = (saved as Partial<SkillMark>).proficient;
+      const bonus: SkillBonus =
+        bonusRaw === "plus15" || bonusRaw === "plus25" ? bonusRaw : "none";
+      const proficient = typeof proficientRaw === "boolean" ? proficientRaw : false;
+      pericias[nome] = { bonus, proficient };
+    });
+
     const nivel =
       typeof parsed.nivel === "number" && Number.isFinite(parsed.nivel)
         ? parsed.nivel
@@ -257,18 +307,24 @@ function loadPersistedState(): PersistedState | null {
         : "";
     const anotacoes =
       typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
+    const anotacoesHorizonte =
+      typeof parsed.anotacoesHorizonte === "string"
+        ? parsed.anotacoesHorizonte
+        : "";
 
     return {
       personagemNome,
       personagemIdade,
       personagemImagem,
       anotacoes,
+      anotacoesHorizonte,
       nivel,
       pontosDistribuir,
       acertosComuns: acertos,
       decks,
       resultados,
       flipped,
+      pericias,
     };
   } catch {
     return null;
@@ -418,6 +474,7 @@ function DeckCard({
   isFlipped,
   onPuxar,
   onReembaralhar,
+  onDecrement,
   onIncrement,
   onFlipBack,
 }: {
@@ -429,6 +486,7 @@ function DeckCard({
   isFlipped: boolean;
   onPuxar: () => void;
   onReembaralhar: () => void;
+  onDecrement: () => void;
   onIncrement: () => void;
   onFlipBack: () => void;
 }) {
@@ -606,6 +664,17 @@ function DeckCard({
       {/* Controls - always visible below the card */}
       <div className="card-controls">
         <button
+          className="btn-decrement"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDecrement();
+          }}
+          disabled={acertosComuns <= 0}
+          title="Remover acerto"
+        >
+          -
+        </button>
+        <button
           className="btn-increment"
           onClick={(e) => {
             e.stopPropagation();
@@ -652,6 +721,9 @@ export function App() {
     initialState?.personagemImagem ?? ""
   );
   const [anotacoes, setAnotacoes] = useState(initialState?.anotacoes ?? "");
+  const [anotacoesHorizonte, setAnotacoesHorizonte] = useState(
+    initialState?.anotacoesHorizonte ?? ""
+  );
   const anotacoesEditorRef = useRef<HTMLDivElement | null>(null);
   const [nivel, setNivel] = useState(initialState?.nivel ?? 1);
   const [pontosDistribuir, setPontosDistribuir] = useState(
@@ -669,6 +741,9 @@ export function App() {
   const [flipped, setFlipped] = useState<FlipState>(
     initialState?.flipped ?? initFlipped()
   );
+  const [pericias, setPericias] = useState<SkillsState>(
+    initialState?.pericias ?? initPericias()
+  );
 
   useEffect(() => {
     try {
@@ -677,12 +752,14 @@ export function App() {
         personagemIdade,
         personagemImagem,
         anotacoes,
+        anotacoesHorizonte,
         nivel,
         pontosDistribuir,
         acertosComuns,
         decks,
         resultados,
         flipped,
+        pericias,
       };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
     } catch {
@@ -693,12 +770,14 @@ export function App() {
     personagemIdade,
     personagemImagem,
     anotacoes,
+    anotacoesHorizonte,
     nivel,
     pontosDistribuir,
     acertosComuns,
     decks,
     resultados,
     flipped,
+    pericias,
   ]);
 
   const sabedoriaTotal =
@@ -765,6 +844,27 @@ export function App() {
     [acertosComuns, pontosDistribuir]
   );
 
+  const handleDecrement = useCallback(
+    (attr: string) => {
+      if (acertosComuns[attr] <= 0) {
+        alert("Esse atributo já está no mínimo de acertos comuns.");
+        return;
+      }
+      const novoAcertos = {
+        ...acertosComuns,
+        [attr]: acertosComuns[attr] - 1,
+      };
+      setAcertosComuns(novoAcertos);
+      setPontosDistribuir((prev) => prev + 1);
+      setDecks((prev) => ({
+        ...prev,
+        [attr]: criarDeck(novoAcertos[attr]),
+      }));
+      setFlipped((prev) => ({ ...prev, [attr]: false }));
+    },
+    [acertosComuns]
+  );
+
   const handleSubirNivel = useCallback(() => {
     setNivel((prev) => prev + 1);
     setPontosDistribuir((prev) => prev + 2);
@@ -817,6 +917,65 @@ export function App() {
       editor.innerHTML = anotacoes;
     }
   }, [anotacoes]);
+
+  const totalPlus25 = TODAS_PERICIAS.filter(
+    (nome) => pericias[nome].bonus === "plus25"
+  ).length;
+  const totalPlus15 = TODAS_PERICIAS.filter(
+    (nome) => pericias[nome].bonus === "plus15"
+  ).length;
+  const totalProficientes = TODAS_PERICIAS.filter(
+    (nome) => pericias[nome].proficient
+  ).length;
+
+  const handleToggleBonusPericia = useCallback(
+    (nomePericia: string, bonus: "plus15" | "plus25") => {
+      setPericias((prev) => {
+        const atual = prev[nomePericia] ?? { bonus: "none", proficient: false };
+        const total25 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus25").length;
+        const total15 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus15").length;
+        const removendoMesmo = atual.bonus === bonus;
+
+        if (!removendoMesmo) {
+          if (bonus === "plus25" && atual.bonus !== "plus25" && total25 >= PERICIA_LIMITES.plus25) {
+            alert("Limite de 3 perícias com +25% atingido.");
+            return prev;
+          }
+          if (bonus === "plus15" && atual.bonus !== "plus15" && total15 >= PERICIA_LIMITES.plus15) {
+            alert("Limite de 3 perícias com +15% atingido.");
+            return prev;
+          }
+        }
+
+        return {
+          ...prev,
+          [nomePericia]: {
+            ...atual,
+            bonus: removendoMesmo ? "none" : bonus,
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleToggleProficienciaPericia = useCallback((nomePericia: string) => {
+    setPericias((prev) => {
+      const atual = prev[nomePericia] ?? { bonus: "none", proficient: false };
+      const totalProf = TODAS_PERICIAS.filter((n) => prev[n].proficient).length;
+      if (!atual.proficient && totalProf >= PERICIA_LIMITES.proficient) {
+        alert("Limite de 2 perícias proficientes atingido.");
+        return prev;
+      }
+      return {
+        ...prev,
+        [nomePericia]: {
+          ...atual,
+          proficient: !atual.proficient,
+        },
+      };
+    });
+  }, []);
 
   return (
     <div className="app-bg">
@@ -884,6 +1043,7 @@ export function App() {
                   isFlipped={flipped[attr]}
                   onPuxar={() => handlePuxar(attr)}
                   onReembaralhar={() => handleReembaralhar(attr)}
+                  onDecrement={() => handleDecrement(attr)}
                   onIncrement={() => handleIncrement(attr)}
                   onFlipBack={() => handleFlipBack(attr)}
                 />
@@ -1105,8 +1265,20 @@ export function App() {
             <p>Falha: tempo passa, nova tentativa custa mais.</p>
           </div>
 
-          {/* Perícias & Engenhosidade */}
           <div className="painel">
+            <h2 className="panel-title">
+              <i className="fas fa-sticky-note"></i> Anotações do Horizonte
+            </h2>
+            <textarea
+              className="horizonte-anotacoes"
+              value={anotacoesHorizonte}
+              onChange={(e) => setAnotacoesHorizonte(e.target.value)}
+              placeholder="Registre custos de tempo, consequências e urgências da cena..."
+            />
+          </div>
+
+          {/* Perícias & Engenhosidade */}
+          <div className="painel pericias-painel">
             <h2 className="panel-title">
               <i className="fas fa-dice-d20"></i> Perícias &amp; Engenhosidade
               (d100)
@@ -1135,89 +1307,88 @@ export function App() {
               (Sabedoria).
             </p>
 
+            <div className="pericias-contadores">
+              <span className="contador contador-25">
+                +25 ({totalPlus25}/{PERICIA_LIMITES.plus25})
+              </span>
+              <span className="contador contador-15">
+                +15 ({totalPlus15}/{PERICIA_LIMITES.plus15})
+              </span>
+              <span className="contador contador-prof">
+                PROF ({totalProficientes}/{PERICIA_LIMITES.proficient})
+              </span>
+            </div>
+
             <div className="pericias-grid">
-              <div>
-                <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
-                  Físicas
-                </h3>
-                <ul className="list-none p-0 m-0">
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Acrobacia
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Atletismo
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Furtividade
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Prestidigitação
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
-                  Sociais
-                </h3>
-                <ul className="list-none p-0 m-0">
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Atuação
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Enganação
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Intimidação
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Intuição
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Persuasão
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
-                  Conhecimento
-                </h3>
-                <ul className="list-none p-0 m-0">
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Arcanismo
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    História
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Natureza
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Religião
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
-                  Práticas
-                </h3>
-                <ul className="list-none p-0 m-0">
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Investigação
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Medicina
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Percepção
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Sobrevivência
-                  </li>
-                  <li className="py-0.5 text-sm border-b border-dotted border-gray-300">
-                    Adestrar Animais
-                  </li>
-                </ul>
-              </div>
+              {Object.entries(PERICIAS_POR_CATEGORIA).map(([categoria, lista]) => (
+                <div key={categoria}>
+                  <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
+                    {categoria}
+                  </h3>
+                  <ul className="list-none p-0 m-0">
+                    {lista.map((nomePericia) => {
+                      const mark = pericias[nomePericia];
+                      const percentual =
+                        BASE_PERICIA +
+                        (mark.bonus === "plus25" ? 25 : mark.bonus === "plus15" ? 15 : 0);
+                      return (
+                        <li key={nomePericia} className="pericia-item">
+                          <div className="pericia-linha-topo">
+                            <span className="pericia-nome">{nomePericia}</span>
+                            <span className="pericia-percentual">{percentual}%</span>
+                          </div>
+                          <div className="pericia-marcacoes">
+                            <button
+                              type="button"
+                              className={`pericia-tag-btn ${
+                                mark.bonus === "plus25" ? "ativo-25" : ""
+                              }`}
+                              onClick={() =>
+                                handleToggleBonusPericia(nomePericia, "plus25")
+                              }
+                            >
+                              +25
+                            </button>
+                            <button
+                              type="button"
+                              className={`pericia-tag-btn ${
+                                mark.bonus === "plus15" ? "ativo-15" : ""
+                              }`}
+                              onClick={() =>
+                                handleToggleBonusPericia(nomePericia, "plus15")
+                              }
+                            >
+                              +15
+                            </button>
+                            <button
+                              type="button"
+                              className={`pericia-tag-btn ${
+                                mark.proficient ? "ativo-prof" : ""
+                              }`}
+                              onClick={() =>
+                                handleToggleProficienciaPericia(nomePericia)
+                              }
+                            >
+                              PROF
+                            </button>
+                          </div>
+                          <div className="pericia-badges">
+                            {mark.bonus === "plus25" && (
+                              <span className="badge badge-25">+25%</span>
+                            )}
+                            {mark.bonus === "plus15" && (
+                              <span className="badge badge-15">+15%</span>
+                            )}
+                            {mark.proficient && (
+                              <span className="badge badge-prof">★ Vantagem</span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
             </div>
 
             <div className="bg-gray-200 p-2 rounded mt-3 text-sm">
@@ -1230,7 +1401,7 @@ export function App() {
 
           <div className="painel anotacoes-painel">
             <h2 className="panel-title">
-              <i className="fas fa-pen"></i> Anotações
+              <i className="fas fa-pen"></i> Características do personagem
             </h2>
             <div className="anotacoes-toolbar">
               <button

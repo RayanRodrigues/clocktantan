@@ -396,6 +396,12 @@
   font-weight: 800 !important;
 }
 
+.btn-decrement {
+  max-width: 38px;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+}
+
 /* Nível info bar */
 .nivel-info {
   display: flex;
@@ -541,7 +547,30 @@
   font-size: 0.9rem;
 }
 
+.horizonte-anotacoes {
+  width: 100%;
+  min-height: 330px;
+  resize: vertical;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  outline: none;
+}
+
+.horizonte-anotacoes:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2);
+}
+
 .anotacoes-painel {
+  grid-column: 1 / -1;
+}
+
+.pericias-painel {
   grid-column: 1 / -1;
 }
 
@@ -609,6 +638,137 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-top: 15px;
+}
+
+.pericias-contadores {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.contador-25 {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.contador-15 {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
+}
+
+.contador-prof {
+  background: #fef3c7;
+  border-color: #eab308;
+  color: #854d0e;
+}
+
+.pericia-item {
+  border: 1px dotted #cbd5e1;
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: 6px;
+  background: #f8fafc;
+}
+
+.pericia-linha-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.pericia-nome {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pericia-percentual {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pericia-marcacoes {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.pericia-tag-btn {
+  border: 1px solid #94a3b8;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pericia-tag-btn:hover {
+  background: #e2e8f0;
+}
+
+.pericia-tag-btn.ativo-25 {
+  background: #3b82f6;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.pericia-tag-btn.ativo-15 {
+  background: #22c55e;
+  border-color: #15803d;
+  color: #fff;
+}
+
+.pericia-tag-btn.ativo-prof {
+  background: #eab308;
+  border-color: #ca8a04;
+  color: #fff;
+}
+
+.pericia-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.badge-25 {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-15 {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-prof {
+  background: #fef3c7;
+  color: #854d0e;
 }
 
 /* Responsive */
