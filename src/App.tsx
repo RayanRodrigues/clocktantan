@@ -8,15 +8,16 @@ import {
 } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
 import { DeckCard } from "./components/DeckCard";
+import { CharacterSidebar } from "./components/CharacterSidebar";
 import { NotesEditor } from "./components/NotesEditor";
+import { ReferencePanels } from "./components/ReferencePanels";
+import { SkillsPanel } from "./components/SkillsPanel";
 import { auth, db } from "./firebase";
 import {
-  BASE_PERICIA,
   ACERTOS_CRITICOS_FIXOS,
   ACERTOS_INICIAIS_COMUNS,
   ATRIBUTOS,
   PERICIA_LIMITES,
-  PERICIAS_POR_CATEGORIA,
   STORAGE_KEY,
   TODAS_PERICIAS,
   criarDeck,
@@ -36,7 +37,6 @@ import {
   type ResultState,
   type FlipState,
   type SkillsState,
-  type SkillMark,
 } from "./utils/gameState";
 
 interface CharacterListItem {
@@ -478,21 +478,6 @@ export function App() {
     setPersonagemImagem(raw);
   }, [personagemImagemLink]);
 
-  const totalPlus25 = TODAS_PERICIAS.filter(
-    (nome) => pericias[nome].bonus === "plus25"
-  ).length;
-  const totalPlus15 = TODAS_PERICIAS.filter(
-    (nome) => pericias[nome].bonus === "plus15"
-  ).length;
-  const totalProficientes = TODAS_PERICIAS.filter(
-    (nome) => pericias[nome].proficient
-  ).length;
-  const totalEngGastos = TODAS_PERICIAS.reduce(
-    (acc, nome) => acc + (pericias[nome].engStacks || 0),
-    0
-  );
-  const engDisponivel = sabedoriaTotal - totalEngGastos;
-
   const handleToggleBonusPericia = useCallback(
     (nomePericia: string, bonus: "plus15" | "plus25") => {
       setPericias((prev) => {
@@ -805,217 +790,18 @@ export function App() {
           </div>
 
           {/* Painel lateral: Afinidade */}
-          <div className="info-section">
-            <div className="painel personagem-foto-painel">
-              <h2 className="panel-title">
-                <i className="fas fa-image"></i> Retrato do Personagem
-              </h2>
-
-              <div className="personagem-foto-box">
-                {personagemImagem ? (
-                  <img
-                    src={personagemImagem}
-                    alt="Retrato do personagem"
-                    className="personagem-foto-img"
-                  />
-                ) : (
-                  <div className="personagem-foto-placeholder">
-                    Sem imagem
-                  </div>
-                )}
-              </div>
-
-              <div className="personagem-foto-acoes">
-                <button
-                  type="button"
-                  className="personagem-foto-btn personagem-foto-remover"
-                  onClick={() => setPersonagemImagem("")}
-                  disabled={!personagemImagem}
-                >
-                  <i className="fas fa-trash"></i> Remover
-                </button>
-              </div>
-              <div className="personagem-foto-link">
-                <input
-                  type="url"
-                  value={personagemImagemLink}
-                  onChange={(e) => setPersonagemImagemLink(e.target.value)}
-                  placeholder="Cole um link de imagem (https://...)"
-                />
-                <button
-                  type="button"
-                  className="personagem-foto-btn"
-                  onClick={handleUsarImagemPorLink}
-                >
-                  Usar link
-                </button>
-              </div>
-            </div>
-            <div className="painel">
-              <h2 className="panel-title">
-                <i className="fas fa-handshake"></i> Afinidade (Carisma)
-              </h2>
-              <table className="panel-table">
-                <thead>
-                  <tr>
-                    <th>Pontos de Carisma</th>
-                    <th>Afinidade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>8-10</td>
-                    <td>3</td>
-                  </tr>
-                  <tr>
-                    <td>11-14</td>
-                    <td>4</td>
-                  </tr>
-                  <tr>
-                    <td>15-18</td>
-                    <td>5</td>
-                  </tr>
-                  <tr>
-                    <td>19-20</td>
-                    <td>6</td>
-                  </tr>
-                  <tr>
-                    <td>23-26</td>
-                    <td>7</td>
-                  </tr>
-                  <tr>
-                    <td>27-30</td>
-                    <td>8</td>
-                  </tr>
-                  <tr>
-                    <td>31-40</td>
-                    <td>11</td>
-                  </tr>
-                  <tr>
-                    <td>41-48</td>
-                    <td>12</td>
-                  </tr>
-                  <tr>
-                    <td>49-57</td>
-                    <td>14</td>
-                  </tr>
-                  <tr>
-                    <td>58-67</td>
-                    <td>18</td>
-                  </tr>
-                  <tr>
-                    <td>68-79</td>
-                    <td>20</td>
-                  </tr>
-                  <tr>
-                    <td>80-90</td>
-                    <td>22</td>
-                  </tr>
-                  <tr>
-                    <td>91-100</td>
-                    <td>26</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p className="mt-2 text-xs text-gray-600">
-                Espaço de artefatos: 1º:1, 2º:3, 3º:4, 4º:7, 5º:11
-              </p>
-            </div>
-          </div>
+          <CharacterSidebar
+            personagemImagem={personagemImagem}
+            personagemImagemLink={personagemImagemLink}
+            onPersonagemImagemLinkChange={setPersonagemImagemLink}
+            onUsarImagemPorLink={handleUsarImagemPorLink}
+            onRemoverImagem={() => setPersonagemImagem("")}
+          />
         </div>
 
         {/* Painéis inferiores */}
         <div className="paineis-inferiores">
-          {/* Tabela de classes */}
-          <div className="painel">
-            <h2 className="panel-title">
-              <i className="fas fa-dragon"></i> Tabela de classes
-            </h2>
-            <table className="panel-table">
-              <thead>
-                <tr>
-                  <th>Classe</th>
-                  <th>Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Variante</td>
-                  <td>1</td>
-                </tr>
-                <tr>
-                  <td>Feiticeiro</td>
-                  <td>2</td>
-                </tr>
-                <tr>
-                  <td>Santo vivo</td>
-                  <td>3</td>
-                </tr>
-                <tr>
-                  <td>Mago</td>
-                  <td>4-6</td>
-                </tr>
-                <tr>
-                  <td>Paladino</td>
-                  <td>7-8</td>
-                </tr>
-                <tr>
-                  <td>Bruxa</td>
-                  <td>9-10</td>
-                </tr>
-                <tr>
-                  <td>Guerreiro</td>
-                  <td>10-100</td>
-                </tr>
-              </tbody>
-            </table>
-            <p className="mt-2 text-xs text-gray-600">
-              Classes mágicas têm progressão própria.
-            </p>
-          </div>
-
-          {/* Combate: A Trindade */}
-          <div className="painel regras">
-            <h2 className="panel-title">
-              <i className="fas fa-fist-raised"></i> Combate: A Trindade
-            </h2>
-            <p>
-              <strong>1ª Ação:</strong> Sacar 1 carta (acerto = sucesso).
-            </p>
-            <p>
-              <strong>2ª Ação:</strong> Sacar 2 cartas (priorizar erro:
-              qualquer erro anula).
-            </p>
-            <p>
-              <strong>3ª Ação:</strong> Sacar 3 cartas (priorizar erro).
-            </p>
-            <p>
-              <strong>Esquiva:</strong> d100: 1ª total, 2ª metade, 3ª quarto.
-            </p>
-            <p>
-              <strong>Mitigação:</strong> usar ação para movimento/interação
-              sem teste.
-            </p>
-            <p>
-              <strong>Iniciativa:</strong> saque do deck de Destreza.
-            </p>
-          </div>
-
-          {/* Horizonte de Eventos */}
-          <div className="painel regras">
-            <h2 className="panel-title">
-              <i className="fas fa-hourglass-half"></i> Horizonte de Eventos
-            </h2>
-            <p>O tempo é recurso. Mestre define custo antes do teste.</p>
-            <p>
-              <strong>Pressa:</strong> metade do tempo, penalidade (priorizar
-              erro ou -50% perícia).
-            </p>
-            <p>
-              <strong>Cuidado:</strong> dobro do tempo, vantagem.
-            </p>
-            <p>Falha: tempo passa, nova tentativa custa mais.</p>
-          </div>
+          <ReferencePanels />
 
           <NotesEditor
             title="Anotações"
@@ -1026,154 +812,14 @@ export function App() {
           />
 
           {/* Perícias & Engenhosidade */}
-          <div className="painel pericias-painel">
-            <h2 className="panel-title">
-              <i className="fas fa-dice-d20"></i> Perícias &amp; Engenhosidade
-              (d100)
-            </h2>
-            <p className="text-sm">
-              <strong>Base:</strong> Todas as perícias começam com 15%.
-              Personagem inicia escolhendo:
-            </p>
-            <ul className="text-sm list-disc ml-5 my-2 space-y-1">
-              <li>
-                3 perícias para aumentar <strong>+25%</strong> (ficam com 40%)
-              </li>
-              <li>
-                3 perícias para aumentar <strong>+15%</strong> (ficam com 30%)
-              </li>
-              <li>
-                2 perícias para ser <strong>proficiente</strong> (vantagem: rola
-                duas vezes e fica com o melhor resultado)
-              </li>
-            </ul>
-            <p className="text-sm">
-              <strong>Engenhosidade:</strong> Cada ponto de Sabedoria (acerto)
-              dá <strong>4%</strong> para distribuir em qualquer perícia (máximo
-              80% por perícia). Disponível:{" "}
-              <strong>{Math.max(0, engDisponivel)}</strong> / {sabedoriaTotal}{" "}
-              (gastos: {totalEngGastos}).
-            </p>
-
-            <div className="pericias-contadores">
-              <span className="contador contador-25">
-                +25 ({totalPlus25}/{PERICIA_LIMITES.plus25})
-              </span>
-              <span className="contador contador-15">
-                +15 ({totalPlus15}/{PERICIA_LIMITES.plus15})
-              </span>
-              <span className="contador contador-prof">
-                PROF ({totalProficientes}/{PERICIA_LIMITES.proficient})
-              </span>
-              <span className="contador contador-eng">
-                ENG ({totalEngGastos}/{sabedoriaTotal})
-              </span>
-            </div>
-
-            <div className="pericias-grid">
-              {Object.entries(PERICIAS_POR_CATEGORIA).map(([categoria, lista]) => (
-                <div key={categoria}>
-                  <h3 className="text-base font-bold border-b border-gray-400 pb-1 mb-2">
-                    {categoria}
-                  </h3>
-                  <ul className="list-none p-0 m-0">
-                    {lista.map((nomePericia) => {
-                      const mark = pericias[nomePericia];
-                      const engBonus = (mark.engStacks || 0) * 4;
-                      const percentual =
-                        BASE_PERICIA +
-                        (mark.bonus === "plus25" ? 25 : mark.bonus === "plus15" ? 15 : 0) +
-                        engBonus;
-                      return (
-                        <li key={nomePericia} className="pericia-item">
-                          <div className="pericia-linha-topo">
-                            <span className="pericia-nome">{nomePericia}</span>
-                            <span className="pericia-percentual">{percentual}%</span>
-                          </div>
-                          <div className="pericia-marcacoes">
-                            <button
-                              type="button"
-                              className={`pericia-tag-btn ${
-                                mark.bonus === "plus25" ? "ativo-25" : ""
-                              }`}
-                              onClick={() =>
-                                handleToggleBonusPericia(nomePericia, "plus25")
-                              }
-                            >
-                              +25
-                            </button>
-                            <button
-                              type="button"
-                              className={`pericia-tag-btn ${
-                                mark.bonus === "plus15" ? "ativo-15" : ""
-                              }`}
-                              onClick={() =>
-                                handleToggleBonusPericia(nomePericia, "plus15")
-                              }
-                            >
-                              +15
-                            </button>
-                            <button
-                              type="button"
-                              className={`pericia-tag-btn ${
-                                mark.proficient ? "ativo-prof" : ""
-                              }`}
-                              onClick={() =>
-                                handleToggleProficienciaPericia(nomePericia)
-                              }
-                            >
-                              PROF
-                            </button>
-                            <button
-                              type="button"
-                              className="pericia-tag-btn ativo-eng"
-                              onClick={() => handleIncrementEngPericia(nomePericia)}
-                              disabled={engDisponivel <= 0}
-                              title="Adicionar +4% de engenhosidade"
-                            >
-                              +ENG
-                            </button>
-                            <button
-                              type="button"
-                              className="pericia-tag-btn"
-                              onClick={() => handleDecrementEngPericia(nomePericia)}
-                              disabled={(mark.engStacks || 0) <= 0}
-                              title="Remover +4% de engenhosidade"
-                            >
-                              -ENG
-                            </button>
-                          </div>
-                          <div className="pericia-badges">
-                            {mark.bonus === "plus25" && (
-                              <span className="badge badge-25">+25%</span>
-                            )}
-                            {mark.bonus === "plus15" && (
-                              <span className="badge badge-15">+15%</span>
-                            )}
-                            {mark.proficient && (
-                              <span className="badge badge-prof">★ Vantagem</span>
-                            )}
-                            {(mark.engStacks || 0) > 0 && (
-                              <span className="badge badge-eng">
-                                ENG x{mark.engStacks} (+{engBonus}%)
-                              </span>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-gray-200 p-2 rounded mt-3 text-sm">
-              <i className="fas fa-info-circle"></i>{" "}
-              <strong>Lembrete:</strong> Perícias são resolvidas com d100
-              (rolar abaixo do valor). Dificuldade pode ser reduzida para
-              metade ou quarto do valor em tarefas complexas.
-            </div>
-          </div>
+          <SkillsPanel
+            pericias={pericias}
+            sabedoriaTotal={sabedoriaTotal}
+            onToggleBonusPericia={handleToggleBonusPericia}
+            onToggleProficienciaPericia={handleToggleProficienciaPericia}
+            onIncrementEngPericia={handleIncrementEngPericia}
+            onDecrementEngPericia={handleDecrementEngPericia}
+          />
 
           <NotesEditor
             title="Características do personagem"
@@ -1188,4 +834,7 @@ export function App() {
     </div>
   );
 }
+
+
+
 
