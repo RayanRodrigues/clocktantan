@@ -247,7 +247,7 @@ interface PersistedState {
 
 type CloudState = Omit<
   PersistedState,
-  "personagemImagem" | "decks" | "resultados" | "flipped"
+  "decks" | "resultados" | "flipped"
 >;
 
 interface CharacterListItem {
@@ -366,6 +366,7 @@ function toCloudState(state: PersistedState): CloudState {
   return {
     personagemNome: state.personagemNome,
     personagemIdade: state.personagemIdade,
+    personagemImagem: state.personagemImagem,
     anotacoes: state.anotacoes,
     anotacoesHorizonte: state.anotacoesHorizonte,
     nivel: state.nivel,
@@ -1189,33 +1190,6 @@ export function App() {
     setPontosDistribuir((prev) => prev + 2);
   }, []);
 
-  const handleImagemChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (!file.type.startsWith("image/")) {
-        alert("Selecione um arquivo de imagem válido.");
-        return;
-      }
-      // Limite para evitar exceder cota do localStorage.
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Imagem muito grande. Use uma imagem de até 2MB.");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result;
-        if (typeof result === "string") {
-          setPersonagemImagem(result);
-        }
-      };
-      reader.readAsDataURL(file);
-      e.target.value = "";
-    },
-    []
-  );
-
   const handleUsarImagemPorLink = useCallback(() => {
     const raw = personagemImagemLink.trim();
     if (!raw) return;
@@ -1702,14 +1676,6 @@ export function App() {
               </div>
 
               <div className="personagem-foto-acoes">
-                <label className="personagem-foto-btn">
-                  <i className="fas fa-upload"></i> Escolher imagem
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImagemChange}
-                  />
-                </label>
                 <button
                   type="button"
                   className="personagem-foto-btn personagem-foto-remover"
