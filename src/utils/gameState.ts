@@ -20,6 +20,10 @@ export interface FlipState {
   [attr: string]: boolean;
 }
 
+export interface CriticosExtrasState {
+  [attr: string]: number;
+}
+
 export interface SkillMark {
   plus15: boolean;
   plus25: boolean;
@@ -161,10 +165,12 @@ export function embaralhar(arr: Card[]): Card[] {
   return a;
 }
 
-export function criarDeck(acertosComuns: number): Card[] {
+export function criarDeck(acertosComuns: number, criticosExtras = 0): Card[] {
   const deck: Card[] = [];
-  for (let i = 0; i < acertosComuns; i++) deck.push({ tipo: "acerto" });
-  for (let i = 0; i < ACERTOS_CRITICOS_FIXOS; i++) {
+  const extras = Math.max(0, Math.floor(criticosExtras));
+  const acertosComunsNoDeck = Math.max(0, acertosComuns - extras);
+  for (let i = 0; i < acertosComunsNoDeck; i++) deck.push({ tipo: "acerto" });
+  for (let i = 0; i < ACERTOS_CRITICOS_FIXOS + extras; i++) {
     deck.push({ tipo: "acerto_critico" });
   }
   for (let i = 0; i < ERROS_COMUNS_FIXOS; i++) deck.push({ tipo: "erro" });
@@ -174,10 +180,13 @@ export function criarDeck(acertosComuns: number): Card[] {
   return embaralhar(deck);
 }
 
-export function criarTodosDecks(acertosComuns: AccuracyState): DeckState {
+export function criarTodosDecks(
+  acertosComuns: AccuracyState,
+  criticosExtras?: CriticosExtrasState
+): DeckState {
   const decks: DeckState = {};
   ATRIBUTOS.forEach((attr) => {
-    decks[attr] = criarDeck(acertosComuns[attr]);
+    decks[attr] = criarDeck(acertosComuns[attr], criticosExtras?.[attr] ?? 0);
   });
   return decks;
 }
@@ -206,6 +215,14 @@ export function initFlipped(): FlipState {
   return f;
 }
 
+export function initCriticosExtras(): CriticosExtrasState {
+  const extras: CriticosExtrasState = {};
+  ATRIBUTOS.forEach((attr) => {
+    extras[attr] = 0;
+  });
+  return extras;
+}
+
 export function initPericias(): SkillsState {
   const pericias: SkillsState = {};
   TODAS_PERICIAS.forEach((nome) => {
@@ -223,6 +240,7 @@ export interface PersistedState {
   nivel: number;
   pontosDistribuir: number;
   acertosComuns: AccuracyState;
+  criticosExtras: CriticosExtrasState;
   decks: DeckState;
   resultados: ResultState;
   flipped: FlipState;
@@ -251,7 +269,31 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     }
   });
 
-  const decks = criarTodosDecks(acertos);
+  const criticosExtras = initCriticosExtras();
+  ATRIBUTOS.forEach((attr) => {
+    const raw = parsed.criticosExtras?.[attr];
+    if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
+      criticosExtras[attr] = Math.floor(raw);
+    }
+  });
+  ATRIBUTOS.forEach((attr) => {
+    criticosExtras[attr] = Math.min(criticosExtras[attr], acertos[attr]);
+  });
+  const transformacoesTotaisSabedoria = Math.floor(
+    ((acertos["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) + ACERTOS_CRITICOS_FIXOS) / 10
+  );
+  let usadas = ATRIBUTOS.reduce((sum, attr) => sum + criticosExtras[attr], 0);
+  if (usadas > transformacoesTotaisSabedoria) {
+    let excesso = usadas - transformacoesTotaisSabedoria;
+    for (const attr of ATRIBUTOS.slice().reverse()) {
+      if (excesso <= 0) break;
+      const remover = Math.min(excesso, criticosExtras[attr]);
+      criticosExtras[attr] -= remover;
+      excesso -= remover;
+    }
+  }
+
+  const decks = criarTodosDecks(acertos, criticosExtras);
   ATRIBUTOS.forEach((attr) => {
     const savedDeck = parsed.decks?.[attr];
     if (Array.isArray(savedDeck) && savedDeck.every(isCard)) {
@@ -335,6 +377,7 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     nivel,
     pontosDistribuir,
     acertosComuns: acertos,
+    criticosExtras,
     decks,
     resultados,
     flipped,
@@ -356,6 +399,7 @@ export function toCloudState(state: PersistedState): CloudState {
     nivel: state.nivel,
     pontosDistribuir: state.pontosDistribuir,
     acertosComuns: state.acertosComuns,
+    criticosExtras: state.criticosExtras,
     pericias: state.pericias,
   };
 }

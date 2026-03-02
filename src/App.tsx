@@ -19,11 +19,13 @@ import {
   getMaxEngStacksForBonus,
   getSkillBonusTotal,
   initAcertos,
+  initCriticosExtras,
   initFlipped,
   initPericias,
   initResults,
   loadPersistedState,
   type AccuracyState,
+  type CriticosExtrasState,
   type PersistedState,
   type DeckState,
   type ResultState,
@@ -55,8 +57,15 @@ export function App() {
   const [acertosComuns, setAcertosComuns] = useState<AccuracyState>(
     initialState?.acertosComuns ?? initAcertos()
   );
+  const [criticosExtras, setCriticosExtras] = useState<CriticosExtrasState>(
+    initialState?.criticosExtras ?? initCriticosExtras()
+  );
   const [decks, setDecks] = useState<DeckState>(
-    initialState?.decks ?? criarTodosDecks(initialState?.acertosComuns ?? initAcertos())
+    initialState?.decks ??
+      criarTodosDecks(
+        initialState?.acertosComuns ?? initAcertos(),
+        initialState?.criticosExtras ?? initCriticosExtras()
+      )
   );
   const [resultados, setResultados] = useState<ResultState>(
     initialState?.resultados ?? initResults()
@@ -77,6 +86,7 @@ export function App() {
       nivel,
       pontosDistribuir,
       acertosComuns,
+      criticosExtras,
       decks,
       resultados,
       flipped,
@@ -91,6 +101,7 @@ export function App() {
       nivel,
       pontosDistribuir,
       acertosComuns,
+      criticosExtras,
       decks,
       resultados,
       flipped,
@@ -107,6 +118,7 @@ export function App() {
     setNivel(state.nivel);
     setPontosDistribuir(state.pontosDistribuir);
     setAcertosComuns(state.acertosComuns);
+    setCriticosExtras(state.criticosExtras);
     setDecks(state.decks);
     setResultados(state.resultados);
     setFlipped(state.flipped);
@@ -139,9 +151,47 @@ export function App() {
   const sabedoriaTotal =
     (acertosComuns["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) +
     ACERTOS_CRITICOS_FIXOS;
+  const transformacoesCriticoTotais = Math.floor(sabedoriaTotal / 10);
+  const transformacoesCriticoUsadas = ATRIBUTOS.reduce(
+    (sum, attr) => sum + (criticosExtras[attr] || 0),
+    0
+  );
+  const transformacoesCriticoDisponiveis = Math.max(
+    0,
+    transformacoesCriticoTotais - transformacoesCriticoUsadas
+  );
   const engenhosidadeTotal = Math.max(
     0,
     sabedoriaTotal - (ACERTOS_INICIAIS_COMUNS + ACERTOS_CRITICOS_FIXOS)
+  );
+
+  const normalizeCriticosExtras = useCallback(
+    (acertos: AccuracyState, rawExtras: CriticosExtrasState): CriticosExtrasState => {
+      const normalized = initCriticosExtras();
+      ATRIBUTOS.forEach((attr) => {
+        const raw = rawExtras[attr] ?? 0;
+        normalized[attr] = Math.min(
+          acertos[attr],
+          Math.max(0, Number.isFinite(raw) ? Math.floor(raw) : 0)
+        );
+      });
+
+      const transformacoesTotais = Math.floor(
+        ((acertos["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) + ACERTOS_CRITICOS_FIXOS) / 10
+      );
+      let usadas = ATRIBUTOS.reduce((sum, attr) => sum + normalized[attr], 0);
+      if (usadas > transformacoesTotais) {
+        let excesso = usadas - transformacoesTotais;
+        for (const attr of ATRIBUTOS.slice().reverse()) {
+          if (excesso <= 0) break;
+          const remove = Math.min(excesso, normalized[attr]);
+          normalized[attr] -= remove;
+          excesso -= remove;
+        }
+      }
+      return normalized;
+    },
+    []
   );
 
   const handlePuxar = useCallback(
@@ -169,19 +219,19 @@ export function App() {
     (attr: string) => {
       setDecks((prev) => ({
         ...prev,
-        [attr]: criarDeck(acertosComuns[attr]),
+        [attr]: criarDeck(acertosComuns[attr], criticosExtras[attr]),
       }));
       setFlipped((prev) => ({ ...prev, [attr]: false }));
       setResultados((prev) => ({ ...prev, [attr]: null }));
     },
-    [acertosComuns]
+    [acertosComuns, criticosExtras]
   );
 
   const handleReembaralharTodos = useCallback(() => {
-    setDecks(criarTodosDecks(acertosComuns));
+    setDecks(criarTodosDecks(acertosComuns, criticosExtras));
     setFlipped(initFlipped());
     setResultados(initResults());
-  }, [acertosComuns]);
+  }, [acertosComuns, criticosExtras]);
 
   const handleIncrement = useCallback(
     (attr: string) => {
@@ -193,15 +243,32 @@ export function App() {
         ...acertosComuns,
         [attr]: acertosComuns[attr] + 1,
       };
+      const novosCriticosExtras = normalizeCriticosExtras(novoAcertos, criticosExtras);
       setAcertosComuns(novoAcertos);
+      setCriticosExtras(novosCriticosExtras);
       setPontosDistribuir((prev) => prev - 1);
-      setDecks((prev) => ({
-        ...prev,
-        [attr]: criarDeck(novoAcertos[attr]),
-      }));
-      setFlipped((prev) => ({ ...prev, [attr]: false }));
+      setDecks((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((nomeAttr) => {
+          const extrasMudou = novosCriticosExtras[nomeAttr] !== criticosExtras[nomeAttr];
+          if (nomeAttr === attr || extrasMudou) {
+            next[nomeAttr] = criarDeck(novoAcertos[nomeAttr], novosCriticosExtras[nomeAttr]);
+          }
+        });
+        return next;
+      });
+      setFlipped((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((nomeAttr) => {
+          const extrasMudou = novosCriticosExtras[nomeAttr] !== criticosExtras[nomeAttr];
+          if (nomeAttr === attr || extrasMudou) {
+            next[nomeAttr] = false;
+          }
+        });
+        return next;
+      });
     },
-    [acertosComuns, pontosDistribuir]
+    [acertosComuns, criticosExtras, normalizeCriticosExtras, pontosDistribuir]
   );
 
   const handleDecrement = useCallback(
@@ -214,21 +281,64 @@ export function App() {
         ...acertosComuns,
         [attr]: acertosComuns[attr] - 1,
       };
+      const novosCriticosExtras = normalizeCriticosExtras(novoAcertos, criticosExtras);
       setAcertosComuns(novoAcertos);
+      setCriticosExtras(novosCriticosExtras);
       setPontosDistribuir((prev) => prev + 1);
-      setDecks((prev) => ({
-        ...prev,
-        [attr]: criarDeck(novoAcertos[attr]),
-      }));
-      setFlipped((prev) => ({ ...prev, [attr]: false }));
+      setDecks((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((nomeAttr) => {
+          const extrasMudou = novosCriticosExtras[nomeAttr] !== criticosExtras[nomeAttr];
+          if (nomeAttr === attr || extrasMudou) {
+            next[nomeAttr] = criarDeck(novoAcertos[nomeAttr], novosCriticosExtras[nomeAttr]);
+          }
+        });
+        return next;
+      });
+      setFlipped((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((nomeAttr) => {
+          const extrasMudou = novosCriticosExtras[nomeAttr] !== criticosExtras[nomeAttr];
+          if (nomeAttr === attr || extrasMudou) {
+            next[nomeAttr] = false;
+          }
+        });
+        return next;
+      });
     },
-    [acertosComuns]
+    [acertosComuns, criticosExtras, normalizeCriticosExtras]
   );
 
   const handleSubirNivel = useCallback(() => {
     setNivel((prev) => prev + 1);
     setPontosDistribuir((prev) => prev + 2);
   }, []);
+
+  const handleConverterAcertoEmCritico = useCallback(
+    (attr: string) => {
+      if (transformacoesCriticoDisponiveis <= 0) {
+        alert("Você não possui transformações críticas disponíveis.");
+        return;
+      }
+      if ((criticosExtras[attr] || 0) >= acertosComuns[attr]) {
+        alert("Não há acertos comuns suficientes nesse atributo para converter.");
+        return;
+      }
+
+      const novosCriticosExtras = {
+        ...criticosExtras,
+        [attr]: (criticosExtras[attr] || 0) + 1,
+      };
+      setCriticosExtras(novosCriticosExtras);
+      setDecks((prev) => ({
+        ...prev,
+        [attr]: criarDeck(acertosComuns[attr], novosCriticosExtras[attr]),
+      }));
+      setFlipped((prev) => ({ ...prev, [attr]: false }));
+      setResultados((prev) => ({ ...prev, [attr]: null }));
+    },
+    [acertosComuns, criticosExtras, transformacoesCriticoDisponiveis]
+  );
 
   const handleUsarImagemPorLink = useCallback(() => {
     const raw = personagemImagemLink.trim();
@@ -443,10 +553,13 @@ export function App() {
                   resultado={resultados[attr]}
                   pontosDistribuir={pontosDistribuir}
                   isFlipped={flipped[attr]}
+                  criticosExtrasNoAtributo={criticosExtras[attr] || 0}
+                  transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
                   onPuxar={() => handlePuxar(attr)}
                   onReembaralhar={() => handleReembaralhar(attr)}
                   onDecrement={() => handleDecrement(attr)}
                   onIncrement={() => handleIncrement(attr)}
+                  onConverterAcertoEmCritico={() => handleConverterAcertoEmCritico(attr)}
                   onFlipBack={() => handleFlipBack(attr)}
                 />
               ))}

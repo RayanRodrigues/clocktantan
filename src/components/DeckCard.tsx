@@ -147,10 +147,13 @@ export function DeckCard({
   resultado,
   pontosDistribuir,
   isFlipped,
+  criticosExtrasNoAtributo,
+  transformacoesCriticoDisponiveis,
   onPuxar,
   onReembaralhar,
   onDecrement,
   onIncrement,
+  onConverterAcertoEmCritico,
   onFlipBack,
 }: {
   attr: string;
@@ -159,10 +162,13 @@ export function DeckCard({
   resultado: Card | null;
   pontosDistribuir: number;
   isFlipped: boolean;
+  criticosExtrasNoAtributo: number;
+  transformacoesCriticoDisponiveis: number;
   onPuxar: () => void;
   onReembaralhar: () => void;
   onDecrement: () => void;
   onIncrement: () => void;
+  onConverterAcertoEmCritico: () => void;
   onFlipBack: () => void;
 }) {
   const theme = ATTR_THEMES[attr];
@@ -214,9 +220,10 @@ export function DeckCard({
 
               <div className="card-body">
                 <div className="card-stats">
-                  <span style={{ color: "#16a34a" }}>✅ {acertosNo}</span>
-                  <span style={{ color: "#dc2626" }}>❌ {errosNo}</span>
-                  <span style={{ color: "#6b7280" }}>📦 {total}</span>
+                  <span style={{ color: "#16a34a" }}>OK {acertosNo}</span>
+                  <span style={{ color: "#dc2626" }}>ER {errosNo}</span>
+                  <span style={{ color: "#ca8a04" }}>CR+ {criticosExtrasNoAtributo}</span>
+                  <span style={{ color: "#6b7280" }}>T {total}</span>
                 </div>
 
                 <div className="card-bonus">{getBonusContent(attr, bonus)}</div>
@@ -347,6 +354,20 @@ export function DeckCard({
           +
         </button>
         <button
+          className="btn-increment"
+          onClick={(e) => {
+            e.stopPropagation();
+            onConverterAcertoEmCritico();
+          }}
+          disabled={
+            transformacoesCriticoDisponiveis <= 0 ||
+            criticosExtrasNoAtributo >= acertosComuns
+          }
+          title="Converter 1 acerto em 1 acerto critico"
+        >
+          *
+        </button>
+        <button
           className="btn-puxar"
           onClick={(e) => {
             e.stopPropagation();
@@ -368,3 +389,4 @@ export function DeckCard({
     </div>
   );
 }
+
