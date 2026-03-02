@@ -1,4 +1,13 @@
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+  type User,
+} from "firebase/auth";
+import { collection, doc, getDoc, getDocs, onSnapshot, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
 
 // ---------- Types ----------
 type CardType = "acerto" | "acerto_critico" | "erro" | "erro_critico";
@@ -28,6 +37,7 @@ type SkillBonus = "none" | "plus15" | "plus25";
 interface SkillMark {
   bonus: SkillBonus;
   proficient: boolean;
+  engStacks: number;
 }
 
 type SkillsState = Record<string, SkillMark>;
@@ -148,6 +158,17 @@ const PERICIAS_POR_CATEGORIA: Record<string, string[]> = {
 };
 const TODAS_PERICIAS = Object.values(PERICIAS_POR_CATEGORIA).flat();
 
+function getSkillBonusValue(bonus: SkillBonus): number {
+  if (bonus === "plus25") return 25;
+  if (bonus === "plus15") return 15;
+  return 0;
+}
+
+function getMaxEngStacksForBonus(bonus: SkillBonus): number {
+  const maxByPercent = Math.floor((80 - BASE_PERICIA - getSkillBonusValue(bonus)) / 4);
+  return Math.max(0, maxByPercent);
+}
+
 // ---------- Helpers ----------
 function embaralhar(arr: Card[]): Card[] {
   const a = [...arr];
@@ -204,7 +225,7 @@ function initFlipped(): FlipState {
 function initPericias(): SkillsState {
   const pericias: SkillsState = {};
   TODAS_PERICIAS.forEach((nome) => {
-    pericias[nome] = { bonus: "none", proficient: false };
+    pericias[nome] = { bonus: "none", proficient: false, engStacks: 0 };
   });
   return pericias;
 }
@@ -224,6 +245,17 @@ interface PersistedState {
   pericias: SkillsState;
 }
 
+type CloudState = Omit<
+  PersistedState,
+  "personagemImagem" | "decks" | "resultados" | "flipped"
+>;
+
+interface CharacterListItem {
+  id: string;
+  ownerUid: string;
+  personagemNome: string;
+}
+
 function isCard(value: unknown): value is Card {
   if (!value || typeof value !== "object") return false;
   const tipo = (value as Card).tipo;
@@ -235,6 +267,114 @@ function isCard(value: unknown): value is Card {
   );
 }
 
+function normalizePersistedState(parsed: Partial<PersistedState>): PersistedState {
+  const acertos = initAcertos();
+  ATRIBUTOS.forEach((attr) => {
+    const value = parsed.acertosComuns?.[attr];
+    if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+      acertos[attr] = value;
+    }
+  });
+
+  const decks = criarTodosDecks(acertos);
+  ATRIBUTOS.forEach((attr) => {
+    const savedDeck = parsed.decks?.[attr];
+    if (Array.isArray(savedDeck) && savedDeck.every(isCard)) {
+      decks[attr] = savedDeck;
+    }
+  });
+
+  const resultados = initResults();
+  ATRIBUTOS.forEach((attr) => {
+    const savedResult = parsed.resultados?.[attr];
+    if (savedResult === null || isCard(savedResult)) {
+      resultados[attr] = savedResult;
+    }
+  });
+
+  const flipped = initFlipped();
+  ATRIBUTOS.forEach((attr) => {
+    const savedFlipped = parsed.flipped?.[attr];
+    if (typeof savedFlipped === "boolean") {
+      flipped[attr] = savedFlipped;
+    }
+  });
+
+  const pericias = initPericias();
+  TODAS_PERICIAS.forEach((nome) => {
+    const saved = parsed.pericias?.[nome];
+    if (!saved || typeof saved !== "object") return;
+    const bonusRaw = (saved as Partial<SkillMark>).bonus;
+    const proficientRaw = (saved as Partial<SkillMark>).proficient;
+    const engStacksRaw = (saved as Partial<SkillMark>).engStacks;
+    const bonus: SkillBonus =
+      bonusRaw === "plus15" || bonusRaw === "plus25" ? bonusRaw : "none";
+    const proficient = typeof proficientRaw === "boolean" ? proficientRaw : false;
+    const engStacks =
+      typeof engStacksRaw === "number" &&
+      Number.isFinite(engStacksRaw) &&
+      engStacksRaw >= 0
+        ? Math.floor(engStacksRaw)
+        : 0;
+    pericias[nome] = {
+      bonus,
+      proficient,
+      engStacks: Math.min(engStacks, getMaxEngStacksForBonus(bonus)),
+    };
+  });
+
+  const nivel =
+    typeof parsed.nivel === "number" && Number.isFinite(parsed.nivel)
+      ? parsed.nivel
+      : 1;
+  const pontosDistribuir =
+    typeof parsed.pontosDistribuir === "number" && Number.isFinite(parsed.pontosDistribuir)
+      ? parsed.pontosDistribuir
+      : 21;
+  const personagemNome =
+    typeof parsed.personagemNome === "string" ? parsed.personagemNome : "";
+  const personagemIdade =
+    typeof parsed.personagemIdade === "string" ? parsed.personagemIdade : "";
+  const personagemImagem =
+    typeof parsed.personagemImagem === "string" ? parsed.personagemImagem : "";
+  const anotacoes = typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
+  const anotacoesHorizonte =
+    typeof parsed.anotacoesHorizonte === "string" ? parsed.anotacoesHorizonte : "";
+
+  return {
+    personagemNome,
+    personagemIdade,
+    personagemImagem,
+    anotacoes,
+    anotacoesHorizonte,
+    nivel,
+    pontosDistribuir,
+    acertosComuns: acertos,
+    decks,
+    resultados,
+    flipped,
+    pericias,
+  };
+}
+
+function toFirestoreSafeState(state: PersistedState): PersistedState {
+  // Remove valores não serializáveis/undefined para evitar "invalid nested entity".
+  return JSON.parse(JSON.stringify(state)) as PersistedState;
+}
+
+function toCloudState(state: PersistedState): CloudState {
+  return {
+    personagemNome: state.personagemNome,
+    personagemIdade: state.personagemIdade,
+    anotacoes: state.anotacoes,
+    anotacoesHorizonte: state.anotacoesHorizonte,
+    nivel: state.nivel,
+    pontosDistribuir: state.pontosDistribuir,
+    acertosComuns: state.acertosComuns,
+    pericias: state.pericias,
+  };
+}
+
 function loadPersistedState(): PersistedState | null {
   if (typeof window === "undefined") return null;
   try {
@@ -243,89 +383,7 @@ function loadPersistedState(): PersistedState | null {
 
     const parsed = JSON.parse(raw) as Partial<PersistedState>;
     if (!parsed || typeof parsed !== "object") return null;
-
-    const acertos = initAcertos();
-    ATRIBUTOS.forEach((attr) => {
-      const value = parsed.acertosComuns?.[attr];
-      if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
-        acertos[attr] = value;
-      }
-    });
-
-    const decks = criarTodosDecks(acertos);
-    ATRIBUTOS.forEach((attr) => {
-      const savedDeck = parsed.decks?.[attr];
-      if (Array.isArray(savedDeck) && savedDeck.every(isCard)) {
-        decks[attr] = savedDeck;
-      }
-    });
-
-    const resultados = initResults();
-    ATRIBUTOS.forEach((attr) => {
-      const savedResult = parsed.resultados?.[attr];
-      if (savedResult === null || isCard(savedResult)) {
-        resultados[attr] = savedResult;
-      }
-    });
-
-    const flipped = initFlipped();
-    ATRIBUTOS.forEach((attr) => {
-      const savedFlipped = parsed.flipped?.[attr];
-      if (typeof savedFlipped === "boolean") {
-        flipped[attr] = savedFlipped;
-      }
-    });
-
-    const pericias = initPericias();
-    TODAS_PERICIAS.forEach((nome) => {
-      const saved = parsed.pericias?.[nome];
-      if (!saved || typeof saved !== "object") return;
-      const bonusRaw = (saved as Partial<SkillMark>).bonus;
-      const proficientRaw = (saved as Partial<SkillMark>).proficient;
-      const bonus: SkillBonus =
-        bonusRaw === "plus15" || bonusRaw === "plus25" ? bonusRaw : "none";
-      const proficient = typeof proficientRaw === "boolean" ? proficientRaw : false;
-      pericias[nome] = { bonus, proficient };
-    });
-
-    const nivel =
-      typeof parsed.nivel === "number" && Number.isFinite(parsed.nivel)
-        ? parsed.nivel
-        : 1;
-    const pontosDistribuir =
-      typeof parsed.pontosDistribuir === "number" &&
-      Number.isFinite(parsed.pontosDistribuir)
-        ? parsed.pontosDistribuir
-        : 21;
-    const personagemNome =
-      typeof parsed.personagemNome === "string" ? parsed.personagemNome : "";
-    const personagemIdade =
-      typeof parsed.personagemIdade === "string" ? parsed.personagemIdade : "";
-    const personagemImagem =
-      typeof parsed.personagemImagem === "string"
-        ? parsed.personagemImagem
-        : "";
-    const anotacoes =
-      typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
-    const anotacoesHorizonte =
-      typeof parsed.anotacoesHorizonte === "string"
-        ? parsed.anotacoesHorizonte
-        : "";
-
-    return {
-      personagemNome,
-      personagemIdade,
-      personagemImagem,
-      anotacoes,
-      anotacoesHorizonte,
-      nivel,
-      pontosDistribuir,
-      acertosComuns: acertos,
-      decks,
-      resultados,
-      flipped,
-      pericias,
-    };
+    return normalizePersistedState(parsed);
   } catch {
     return null;
   }
@@ -720,11 +778,13 @@ export function App() {
   const [personagemImagem, setPersonagemImagem] = useState(
     initialState?.personagemImagem ?? ""
   );
+  const [personagemImagemLink, setPersonagemImagemLink] = useState("");
   const [anotacoes, setAnotacoes] = useState(initialState?.anotacoes ?? "");
   const [anotacoesHorizonte, setAnotacoesHorizonte] = useState(
     initialState?.anotacoesHorizonte ?? ""
   );
   const anotacoesEditorRef = useRef<HTMLDivElement | null>(null);
+  const anotacoesHorizonteEditorRef = useRef<HTMLDivElement | null>(null);
   const [nivel, setNivel] = useState(initialState?.nivel ?? 1);
   const [pontosDistribuir, setPontosDistribuir] = useState(
     initialState?.pontosDistribuir ?? 21
@@ -744,41 +804,295 @@ export function App() {
   const [pericias, setPericias] = useState<SkillsState>(
     initialState?.pericias ?? initPericias()
   );
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [charactersList, setCharactersList] = useState<CharacterListItem[]>([]);
+  const [activeCharacterUid, setActiveCharacterUid] = useState<string | null>(null);
+  const skipCloudSaveRef = useRef(false);
+  const loadedCloudUidRef = useRef<string | null>(null);
+  const desiredCharacterUidRef = useRef<string | null>(null);
+
+  const buildPersistedState = useCallback(
+    (): PersistedState => ({
+      personagemNome,
+      personagemIdade,
+      personagemImagem,
+      anotacoes,
+      anotacoesHorizonte,
+      nivel,
+      pontosDistribuir,
+      acertosComuns,
+      decks,
+      resultados,
+      flipped,
+      pericias,
+    }),
+    [
+      personagemNome,
+      personagemIdade,
+      personagemImagem,
+      anotacoes,
+      anotacoesHorizonte,
+      nivel,
+      pontosDistribuir,
+      acertosComuns,
+      decks,
+      resultados,
+      flipped,
+      pericias,
+    ]
+  );
+
+  const applyPersistedState = useCallback((state: PersistedState) => {
+    setPersonagemNome(state.personagemNome);
+    setPersonagemIdade(state.personagemIdade);
+    setPersonagemImagem(state.personagemImagem);
+    setAnotacoes(state.anotacoes);
+    setAnotacoesHorizonte(state.anotacoesHorizonte);
+    setNivel(state.nivel);
+    setPontosDistribuir(state.pontosDistribuir);
+    setAcertosComuns(state.acertosComuns);
+    setDecks(state.decks);
+    setResultados(state.resultados);
+    setFlipped(state.flipped);
+    setPericias(state.pericias);
+  }, []);
+
+  const loadCharacterFromCloud = useCallback(
+    async (uid: string) => {
+      if (!authUser) return;
+
+      const ref = doc(db, "characters", uid);
+      const snap = await getDoc(ref);
+      if (desiredCharacterUidRef.current !== uid) return;
+
+      if (snap.exists()) {
+        const data = snap.data() as {
+          state?: Partial<PersistedState>;
+          stateJson?: string;
+        };
+
+        if (typeof data.stateJson === "string" && data.stateJson.trim().length > 0) {
+          try {
+            const parsed = JSON.parse(data.stateJson) as Partial<PersistedState>;
+            skipCloudSaveRef.current = true;
+            applyPersistedState(normalizePersistedState(parsed));
+            loadedCloudUidRef.current = uid;
+            return;
+          } catch {
+            // JSON inválido: tenta fallback abaixo.
+          }
+        }
+
+        if (data.state && typeof data.state === "object") {
+          skipCloudSaveRef.current = true;
+          applyPersistedState(normalizePersistedState(data.state));
+          loadedCloudUidRef.current = uid;
+          return;
+        }
+
+        skipCloudSaveRef.current = true;
+        applyPersistedState(normalizePersistedState({}));
+        loadedCloudUidRef.current = uid;
+        return;
+      }
+
+      if (uid === authUser.uid) {
+        const localState = loadPersistedState() ?? normalizePersistedState({});
+        const payload = toCloudState(toFirestoreSafeState(localState));
+        await setDoc(ref, {
+          ownerUid: authUser.uid,
+          stateJson: JSON.stringify(payload),
+        });
+      }
+
+      skipCloudSaveRef.current = true;
+      applyPersistedState(normalizePersistedState({}));
+      loadedCloudUidRef.current = uid;
+    },
+    [authUser, applyPersistedState]
+  );
+
+  const normalizeCharactersList = useCallback(
+    (docs: Array<{ id: string; data: () => unknown }>): CharacterListItem[] => {
+      const list: CharacterListItem[] = docs.map((d) => {
+        const data = d.data() as {
+          ownerUid?: string;
+          state?: Partial<PersistedState>;
+          stateJson?: string;
+        };
+        let personagemNome = "";
+        if (typeof data.stateJson === "string" && data.stateJson.trim()) {
+          try {
+            const parsed = JSON.parse(data.stateJson) as Partial<PersistedState>;
+            if (typeof parsed.personagemNome === "string") {
+              personagemNome = parsed.personagemNome;
+            }
+          } catch {
+            // ignore broken JSON from old docs
+          }
+        } else if (typeof data.state?.personagemNome === "string") {
+          personagemNome = data.state.personagemNome;
+        }
+        return {
+          id: d.id,
+          ownerUid: typeof data.ownerUid === "string" ? data.ownerUid : d.id,
+          personagemNome,
+        };
+      });
+
+      list.sort((a, b) => {
+        const nameA = (a.personagemNome || "").toLowerCase();
+        const nameB = (b.personagemNome || "").toLowerCase();
+        if (nameA && nameB && nameA !== nameB) return nameA.localeCompare(nameB);
+        if (nameA && !nameB) return -1;
+        if (!nameA && nameB) return 1;
+        return a.id.localeCompare(b.id);
+      });
+
+      return list;
+    },
+    []
+  );
 
   useEffect(() => {
     try {
-      const stateToPersist: PersistedState = {
-        personagemNome,
-        personagemIdade,
-        personagemImagem,
-        anotacoes,
-        anotacoesHorizonte,
-        nivel,
-        pontosDistribuir,
-        acertosComuns,
-        decks,
-        resultados,
-        flipped,
-        pericias,
-      };
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buildPersistedState()));
     } catch {
       // Ignore localStorage failures (private mode/quota/etc.)
     }
-  }, [
-    personagemNome,
-    personagemIdade,
-    personagemImagem,
-    anotacoes,
-    anotacoesHorizonte,
-    nivel,
-    pontosDistribuir,
-    acertosComuns,
-    decks,
-    resultados,
-    flipped,
-    pericias,
-  ]);
+  }, [buildPersistedState]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      setAuthLoading(true);
+      setAuthUser(user);
+      loadedCloudUidRef.current = null;
+      if (!user) {
+        setIsAdmin(false);
+        setActiveCharacterUid(null);
+        setCharactersList([]);
+        setAuthLoading(false);
+        return;
+      }
+
+      try {
+        const token = await user.getIdTokenResult();
+        const admin = token.claims.admin === true;
+        setIsAdmin(admin);
+        setActiveCharacterUid(user.uid);
+      } catch {
+        setIsAdmin(false);
+        setActiveCharacterUid(user.uid);
+      } finally {
+        setAuthLoading(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!authUser || !isAdmin) {
+      setCharactersList([]);
+      return;
+    }
+    void getDocs(collection(db, "characters"))
+      .then((snap) => {
+        setCharactersList(normalizeCharactersList(snap.docs));
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar fichas (admin/getDocs):", err);
+      });
+
+    const unsub = onSnapshot(
+      collection(db, "characters"),
+      (snap) => {
+        setCharactersList(normalizeCharactersList(snap.docs));
+      },
+      (err) => {
+        console.error("Erro ao listar fichas (admin):", err);
+      }
+    );
+    return () => unsub();
+  }, [authUser, isAdmin, normalizeCharactersList]);
+
+  useEffect(() => {
+    if (!authUser || !isAdmin) return;
+    if (charactersList.length === 0) {
+      if (activeCharacterUid !== null) {
+        loadedCloudUidRef.current = null;
+        setActiveCharacterUid(null);
+      }
+      return;
+    }
+
+    const hasActive = activeCharacterUid
+      ? charactersList.some((item) => item.id === activeCharacterUid)
+      : false;
+
+    if (!hasActive) {
+      loadedCloudUidRef.current = null;
+      setActiveCharacterUid(charactersList[0].id);
+    }
+  }, [authUser, isAdmin, charactersList, activeCharacterUid]);
+
+  const targetCharacterUid =
+    authUser == null
+      ? null
+      : isAdmin
+      ? activeCharacterUid ?? authUser.uid
+      : authUser.uid;
+
+  useEffect(() => {
+    desiredCharacterUidRef.current = targetCharacterUid;
+  }, [targetCharacterUid]);
+
+    useEffect(() => {
+    if (authLoading || !authUser || !targetCharacterUid) return;
+    if (loadedCloudUidRef.current === targetCharacterUid) return;
+    let cancelled = false;
+    (async () => {
+      setCloudLoading(true);
+      try {
+        await loadCharacterFromCloud(targetCharacterUid);
+        if (cancelled) return;
+      } catch (err) {
+        console.error("Erro ao carregar ficha no Firestore:", err);
+      } finally {
+        if (!cancelled) setCloudLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, authUser, targetCharacterUid, loadCharacterFromCloud]);
+
+  useEffect(() => {
+    if (authLoading || !authUser || cloudLoading || !targetCharacterUid) return;
+    // Evita sobrescrever a ficha-alvo durante a troca de seleção no modo admin.
+    if (loadedCloudUidRef.current !== targetCharacterUid) return;
+    if (skipCloudSaveRef.current) {
+      skipCloudSaveRef.current = false;
+      return;
+    }
+
+    const payload = toCloudState(toFirestoreSafeState(buildPersistedState()));
+    const timer = setTimeout(() => {
+      void setDoc(
+        doc(db, "characters", targetCharacterUid),
+        {
+          ownerUid: targetCharacterUid,
+          stateJson: JSON.stringify(payload),
+        },
+        { merge: true }
+      ).catch((err) => console.error("Erro ao salvar ficha no Firestore:", err));
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [authLoading, authUser, cloudLoading, targetCharacterUid, buildPersistedState]);
 
   const sabedoriaTotal =
     (acertosComuns["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) +
@@ -897,17 +1211,41 @@ export function App() {
     []
   );
 
+  const handleUsarImagemPorLink = useCallback(() => {
+    const raw = personagemImagemLink.trim();
+    if (!raw) return;
+    const isDataImage = raw.startsWith("data:image/");
+    const isHttp = /^https?:\/\//i.test(raw);
+    if (!isDataImage && !isHttp) {
+      alert("Use um link de imagem válido (http/https) ou data:image.");
+      return;
+    }
+    setPersonagemImagem(raw);
+  }, [personagemImagemLink]);
+
   const syncAnotacoesFromEditor = useCallback(() => {
     setAnotacoes(anotacoesEditorRef.current?.innerHTML ?? "");
   }, []);
 
+  const syncAnotacoesHorizonteFromEditor = useCallback(() => {
+    setAnotacoesHorizonte(anotacoesHorizonteEditorRef.current?.innerHTML ?? "");
+  }, []);
+
   const handleFormatClick = useCallback(
-    (command: "bold" | "italic" | "underline" | "insertUnorderedList") => {
+    (
+      editor: "caracteristicas" | "horizonte",
+      command: "bold" | "italic" | "underline" | "insertUnorderedList"
+    ) => {
       document.execCommand(command, false);
+      if (editor === "horizonte") {
+        syncAnotacoesHorizonteFromEditor();
+        anotacoesHorizonteEditorRef.current?.focus();
+        return;
+      }
       syncAnotacoesFromEditor();
       anotacoesEditorRef.current?.focus();
     },
-    [syncAnotacoesFromEditor]
+    [syncAnotacoesFromEditor, syncAnotacoesHorizonteFromEditor]
   );
 
   useEffect(() => {
@@ -918,6 +1256,14 @@ export function App() {
     }
   }, [anotacoes]);
 
+  useEffect(() => {
+    const editor = anotacoesHorizonteEditorRef.current;
+    if (!editor) return;
+    if (editor.innerHTML !== anotacoesHorizonte) {
+      editor.innerHTML = anotacoesHorizonte;
+    }
+  }, [anotacoesHorizonte]);
+
   const totalPlus25 = TODAS_PERICIAS.filter(
     (nome) => pericias[nome].bonus === "plus25"
   ).length;
@@ -927,11 +1273,20 @@ export function App() {
   const totalProficientes = TODAS_PERICIAS.filter(
     (nome) => pericias[nome].proficient
   ).length;
+  const totalEngGastos = TODAS_PERICIAS.reduce(
+    (acc, nome) => acc + (pericias[nome].engStacks || 0),
+    0
+  );
+  const engDisponivel = sabedoriaTotal - totalEngGastos;
 
   const handleToggleBonusPericia = useCallback(
     (nomePericia: string, bonus: "plus15" | "plus25") => {
       setPericias((prev) => {
-        const atual = prev[nomePericia] ?? { bonus: "none", proficient: false };
+        const atual = prev[nomePericia] ?? {
+          bonus: "none",
+          proficient: false,
+          engStacks: 0,
+        };
         const total25 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus25").length;
         const total15 = TODAS_PERICIAS.filter((n) => prev[n].bonus === "plus15").length;
         const removendoMesmo = atual.bonus === bonus;
@@ -947,11 +1302,14 @@ export function App() {
           }
         }
 
+        const novoBonus = removendoMesmo ? "none" : bonus;
+        const maxStacks = getMaxEngStacksForBonus(novoBonus);
         return {
           ...prev,
           [nomePericia]: {
             ...atual,
-            bonus: removendoMesmo ? "none" : bonus,
+            bonus: novoBonus,
+            engStacks: Math.min(atual.engStacks, maxStacks),
           },
         };
       });
@@ -961,7 +1319,11 @@ export function App() {
 
   const handleToggleProficienciaPericia = useCallback((nomePericia: string) => {
     setPericias((prev) => {
-      const atual = prev[nomePericia] ?? { bonus: "none", proficient: false };
+      const atual = prev[nomePericia] ?? {
+        bonus: "none",
+        proficient: false,
+        engStacks: 0,
+      };
       const totalProf = TODAS_PERICIAS.filter((n) => prev[n].proficient).length;
       if (!atual.proficient && totalProf >= PERICIA_LIMITES.proficient) {
         alert("Limite de 2 perícias proficientes atingido.");
@@ -977,6 +1339,75 @@ export function App() {
     });
   }, []);
 
+  const handleIncrementEngPericia = useCallback(
+    (nomePericia: string) => {
+      setPericias((prev) => {
+        const atual = prev[nomePericia] ?? {
+          bonus: "none",
+          proficient: false,
+          engStacks: 0,
+        };
+        const totalEngAtual = TODAS_PERICIAS.reduce(
+          (acc, nome) => acc + (prev[nome].engStacks || 0),
+          0
+        );
+        if (totalEngAtual >= sabedoriaTotal) {
+          alert("Sem pontos de engenhosidade disponíveis.");
+          return prev;
+        }
+        const maxStacks = getMaxEngStacksForBonus(atual.bonus);
+        if (atual.engStacks >= maxStacks) {
+          alert("Essa perícia já está no limite de 80%.");
+          return prev;
+        }
+        return {
+          ...prev,
+          [nomePericia]: {
+            ...atual,
+            engStacks: atual.engStacks + 1,
+          },
+        };
+      });
+    },
+    [sabedoriaTotal]
+  );
+
+  const handleDecrementEngPericia = useCallback((nomePericia: string) => {
+    setPericias((prev) => {
+      const atual = prev[nomePericia] ?? {
+        bonus: "none",
+        proficient: false,
+        engStacks: 0,
+      };
+      if (atual.engStacks <= 0) return prev;
+      return {
+        ...prev,
+        [nomePericia]: {
+          ...atual,
+          engStacks: atual.engStacks - 1,
+        },
+      };
+    });
+  }, []);
+
+  const handleLoginGoogle = useCallback(async () => {
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (err) {
+      console.error("Erro no login:", err);
+      alert("Não foi possível entrar com Google.");
+    }
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+      alert("Não foi possível sair da conta.");
+    }
+  }, []);
+
   return (
     <div className="app-bg">
       <div className="tool">
@@ -986,6 +1417,106 @@ export function App() {
         <div className="text-center mb-6 text-slate-600 italic">
           Gerenciamento de decks, progressão, perícias e regras
         </div>
+        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="text-sm text-slate-700">
+            {authLoading
+              ? "Verificando login..."
+              : authUser
+              ? `Logado: ${authUser.email ?? authUser.uid}`
+              : "Não logado (usando dados locais)"}
+            {authUser && (
+              <span className="ml-2 text-xs text-slate-500">
+                {cloudLoading ? "Sincronizando..." : "Sincronizado com Firestore"}
+              </span>
+            )}
+            {authUser && (
+              <span className="ml-2 text-xs text-slate-500">
+                {isAdmin
+                  ? `(Admin) editando: ${targetCharacterUid}`
+                  : `(UID: ${authUser.uid})`}
+              </span>
+            )}
+          </div>
+          {authUser ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="py-2 px-4 border-2 border-red-500 bg-red-600 hover:bg-red-700 text-white rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+            >
+              Sair
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLoginGoogle}
+              className="py-2 px-4 border-2 border-blue-500 bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+            >
+              Entrar com Google
+            </button>
+          )}
+        </div>
+        {authUser && isAdmin && (
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-slate-700">
+              Ficha ativa:
+            </span>
+            <select
+              className="border border-slate-400 rounded px-2 py-1 text-sm min-w-[280px]"
+              value={targetCharacterUid ?? authUser.uid}
+              onChange={async (e) => {
+                const selectedUid = e.target.value;
+                loadedCloudUidRef.current = null;
+                desiredCharacterUidRef.current = selectedUid;
+                setCloudLoading(true);
+                setActiveCharacterUid(selectedUid);
+                try {
+                  await loadCharacterFromCloud(selectedUid);
+                } catch (err) {
+                  console.error("Erro ao trocar ficha ativa:", err);
+                } finally {
+                  setCloudLoading(false);
+                }
+              }}
+            >
+              {charactersList.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {(item.personagemNome || "Sem nome")} · {item.id}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-slate-600">
+              {charactersList.length} ficha(s) no Firebase
+            </span>
+            <div className="w-full flex flex-wrap gap-2 mt-1">
+              {charactersList.map((item) => (
+                <button
+                  key={`admin-list-${item.id}`}
+                  type="button"
+                  className={`text-xs px-2 py-1 rounded border transition-colors ${
+                    (targetCharacterUid ?? authUser.uid) === item.id
+                      ? "bg-slate-700 text-white border-slate-700"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                  onClick={async () => {
+                    loadedCloudUidRef.current = null;
+                    desiredCharacterUidRef.current = item.id;
+                    setCloudLoading(true);
+                    setActiveCharacterUid(item.id);
+                    try {
+                      await loadCharacterFromCloud(item.id);
+                    } catch (err) {
+                      console.error("Erro ao trocar ficha ativa (lista):", err);
+                    } finally {
+                      setCloudLoading(false);
+                    }
+                  }}
+                >
+                  {(item.personagemNome || "Sem nome")} · {item.id}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="personagem-info">
           <label className="personagem-campo">
@@ -1168,6 +1699,21 @@ export function App() {
                   <i className="fas fa-trash"></i> Remover
                 </button>
               </div>
+              <div className="personagem-foto-link">
+                <input
+                  type="url"
+                  value={personagemImagemLink}
+                  onChange={(e) => setPersonagemImagemLink(e.target.value)}
+                  placeholder="Cole um link de imagem (https://...)"
+                />
+                <button
+                  type="button"
+                  className="personagem-foto-btn"
+                  onClick={handleUsarImagemPorLink}
+                >
+                  Usar link
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1267,13 +1813,48 @@ export function App() {
 
           <div className="painel">
             <h2 className="panel-title">
-              <i className="fas fa-sticky-note"></i> Anotações do Horizonte
+              <i className="fas fa-sticky-note"></i> Anotações
             </h2>
-            <textarea
-              className="horizonte-anotacoes"
-              value={anotacoesHorizonte}
-              onChange={(e) => setAnotacoesHorizonte(e.target.value)}
-              placeholder="Registre custos de tempo, consequências e urgências da cena..."
+            <div className="anotacoes-toolbar">
+              <button
+                type="button"
+                onClick={() => handleFormatClick("horizonte", "bold")}
+                title="Negrito"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormatClick("horizonte", "italic")}
+                title="Itálico"
+              >
+                <em>I</em>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormatClick("horizonte", "underline")}
+                title="Sublinhado"
+              >
+                <u>U</u>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleFormatClick("horizonte", "insertUnorderedList")
+                }
+                title="Lista"
+              >
+                • Lista
+              </button>
+            </div>
+            <div
+              ref={anotacoesHorizonteEditorRef}
+              className="anotacoes-editor"
+              contentEditable
+              suppressContentEditableWarning
+              data-placeholder="Registre custos de tempo, consequências e urgências da cena..."
+              onInput={syncAnotacoesHorizonteFromEditor}
+              onBlur={syncAnotacoesHorizonteFromEditor}
             />
           </div>
 
@@ -1302,9 +1883,9 @@ export function App() {
             <p className="text-sm">
               <strong>Engenhosidade:</strong> Cada ponto de Sabedoria (acerto)
               dá <strong>4%</strong> para distribuir em qualquer perícia (máximo
-              80% por perícia). Atualmente você tem{" "}
-              <strong>{sabedoriaTotal}</strong> pontos de engenhosidade
-              (Sabedoria).
+              80% por perícia). Disponível:{" "}
+              <strong>{Math.max(0, engDisponivel)}</strong> / {sabedoriaTotal}{" "}
+              (gastos: {totalEngGastos}).
             </p>
 
             <div className="pericias-contadores">
@@ -1317,6 +1898,9 @@ export function App() {
               <span className="contador contador-prof">
                 PROF ({totalProficientes}/{PERICIA_LIMITES.proficient})
               </span>
+              <span className="contador contador-eng">
+                ENG ({totalEngGastos}/{sabedoriaTotal})
+              </span>
             </div>
 
             <div className="pericias-grid">
@@ -1328,9 +1912,11 @@ export function App() {
                   <ul className="list-none p-0 m-0">
                     {lista.map((nomePericia) => {
                       const mark = pericias[nomePericia];
+                      const engBonus = (mark.engStacks || 0) * 4;
                       const percentual =
                         BASE_PERICIA +
-                        (mark.bonus === "plus25" ? 25 : mark.bonus === "plus15" ? 15 : 0);
+                        (mark.bonus === "plus25" ? 25 : mark.bonus === "plus15" ? 15 : 0) +
+                        engBonus;
                       return (
                         <li key={nomePericia} className="pericia-item">
                           <div className="pericia-linha-topo">
@@ -1371,6 +1957,24 @@ export function App() {
                             >
                               PROF
                             </button>
+                            <button
+                              type="button"
+                              className="pericia-tag-btn ativo-eng"
+                              onClick={() => handleIncrementEngPericia(nomePericia)}
+                              disabled={engDisponivel <= 0}
+                              title="Adicionar +4% de engenhosidade"
+                            >
+                              +ENG
+                            </button>
+                            <button
+                              type="button"
+                              className="pericia-tag-btn"
+                              onClick={() => handleDecrementEngPericia(nomePericia)}
+                              disabled={(mark.engStacks || 0) <= 0}
+                              title="Remover +4% de engenhosidade"
+                            >
+                              -ENG
+                            </button>
                           </div>
                           <div className="pericia-badges">
                             {mark.bonus === "plus25" && (
@@ -1381,6 +1985,11 @@ export function App() {
                             )}
                             {mark.proficient && (
                               <span className="badge badge-prof">★ Vantagem</span>
+                            )}
+                            {(mark.engStacks || 0) > 0 && (
+                              <span className="badge badge-eng">
+                                ENG x{mark.engStacks} (+{engBonus}%)
+                              </span>
                             )}
                           </div>
                         </li>
@@ -1406,28 +2015,30 @@ export function App() {
             <div className="anotacoes-toolbar">
               <button
                 type="button"
-                onClick={() => handleFormatClick("bold")}
+                onClick={() => handleFormatClick("caracteristicas", "bold")}
                 title="Negrito"
               >
                 <strong>B</strong>
               </button>
               <button
                 type="button"
-                onClick={() => handleFormatClick("italic")}
+                onClick={() => handleFormatClick("caracteristicas", "italic")}
                 title="Itálico"
               >
                 <em>I</em>
               </button>
               <button
                 type="button"
-                onClick={() => handleFormatClick("underline")}
+                onClick={() => handleFormatClick("caracteristicas", "underline")}
                 title="Sublinhado"
               >
                 <u>U</u>
               </button>
               <button
                 type="button"
-                onClick={() => handleFormatClick("insertUnorderedList")}
+                onClick={() =>
+                  handleFormatClick("caracteristicas", "insertUnorderedList")
+                }
                 title="Lista"
               >
                 • Lista
@@ -1448,3 +2059,4 @@ export function App() {
     </div>
   );
 }
+
