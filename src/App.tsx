@@ -186,6 +186,7 @@ export function App() {
     handleLogout,
     handleSelectAdminCharacter,
     handleCreateAdminCharacter,
+    handleUpdateAdminCharacterType,
     handleDeleteAdminCharacter,
   } = useFirebaseCharacterSync({
     buildPersistedState,
@@ -703,6 +704,7 @@ export function App() {
           charactersList={charactersList}
           onSelectCharacter={handleSelectAdminCharacter}
           onCreateCharacter={handleCreateAdminCharacter}
+          onUpdateCharacterType={handleUpdateAdminCharacterType}
           onDeleteCharacter={handleDeleteAdminCharacter}
         />
 

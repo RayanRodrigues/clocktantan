@@ -28,6 +28,7 @@ export interface CharacterListItem {
   id: string;
   ownerUid: string;
   personagemNome: string;
+  type: "player" | "npc";
 }
 
 interface UseFirebaseCharacterSyncParams {
@@ -59,6 +60,7 @@ export function useFirebaseCharacterSync({
           ownerUid?: string;
           state?: Partial<PersistedState>;
           stateJson?: string;
+          type?: "player" | "npc";
         };
         let personagemNome = "";
         if (typeof data.stateJson === "string" && data.stateJson.trim()) {
@@ -77,6 +79,7 @@ export function useFirebaseCharacterSync({
           id: d.id,
           ownerUid: typeof data.ownerUid === "string" ? data.ownerUid : d.id,
           personagemNome,
+          type: data.type === "npc" ? "npc" : "player",
         };
       });
 
@@ -108,7 +111,21 @@ export function useFirebaseCharacterSync({
         const data = snap.data() as {
           state?: Partial<PersistedState>;
           stateJson?: string;
+          type?: "player" | "npc";
         };
+
+        if (uid === authUser.uid && data.type !== "player") {
+          void setDoc(
+            ref,
+            {
+              ownerUid: authUser.uid,
+              type: "player",
+            },
+            { merge: true }
+          ).catch((err) =>
+            console.error("Erro ao normalizar tipo da ficha para player:", err)
+          );
+        }
 
         if (
           typeof data.stateJson === "string" &&
@@ -143,6 +160,7 @@ export function useFirebaseCharacterSync({
         const payload = toCloudState(toFirestoreSafeState(localState));
         await setDoc(ref, {
           ownerUid: authUser.uid,
+          type: "player",
           stateJson: JSON.stringify(payload),
         });
       }
@@ -204,6 +222,19 @@ export function useFirebaseCharacterSync({
       collection(db, "characters"),
       (snap) => {
         setCharactersList(normalizeCharactersList(snap.docs));
+        const missingTypeDocs = snap.docs.filter((d) => {
+          const data = d.data() as { type?: "player" | "npc" };
+          return data.type !== "player" && data.type !== "npc";
+        });
+        if (missingTypeDocs.length > 0) {
+          void Promise.all(
+            missingTypeDocs.map((d) =>
+              setDoc(doc(db, "characters", d.id), { type: "player" }, { merge: true })
+            )
+          ).catch((err) => {
+            console.error("Erro ao migrar fichas sem tipo para player:", err);
+          });
+        }
       },
       (err) => {
         console.error("Erro ao listar fichas (admin):", err);
@@ -273,13 +304,21 @@ export function useFirebaseCharacterSync({
     }
 
     const payload = toCloudState(toFirestoreSafeState(buildPersistedState()));
+    const basePayload: {
+      stateJson: string;
+      ownerUid?: string;
+      type?: "player" | "npc";
+    } = {
+      stateJson: JSON.stringify(payload),
+    };
+    if (targetCharacterUid === authUser.uid) {
+      basePayload.ownerUid = authUser.uid;
+      basePayload.type = "player";
+    }
     const timer = setTimeout(() => {
       void setDoc(
         doc(db, "characters", targetCharacterUid),
-        {
-          ownerUid: targetCharacterUid,
-          stateJson: JSON.stringify(payload),
-        },
+        basePayload,
         { merge: true }
       ).catch((err) => console.error("Erro ao salvar ficha no Firestore:", err));
     }, 600);
@@ -323,7 +362,7 @@ export function useFirebaseCharacterSync({
   );
 
   const handleCreateAdminCharacter = useCallback(
-    async (personagemNome: string) => {
+    async (personagemNome: string, type: "player" | "npc" = "player") => {
       if (!authUser || !isAdmin) return null;
 
       const nomeLimpo = personagemNome.trim();
@@ -336,6 +375,7 @@ export function useFirebaseCharacterSync({
       try {
         await setDoc(ref, {
           ownerUid: authUser.uid,
+          type,
           stateJson: JSON.stringify(payload),
         });
       } catch (err) {
@@ -356,6 +396,19 @@ export function useFirebaseCharacterSync({
       return ref.id;
     },
     [authUser, isAdmin, loadCharacterFromCloud]
+  );
+
+  const handleUpdateAdminCharacterType = useCallback(
+    async (characterUid: string, type: "player" | "npc") => {
+      if (!authUser || !isAdmin) return;
+      if (!characterUid) return;
+      await setDoc(
+        doc(db, "characters", characterUid),
+        { type },
+        { merge: true }
+      );
+    },
+    [authUser, isAdmin]
   );
 
   const handleDeleteAdminCharacter = useCallback(
@@ -392,6 +445,7 @@ export function useFirebaseCharacterSync({
     handleLogout,
     handleSelectAdminCharacter,
     handleCreateAdminCharacter,
+    handleUpdateAdminCharacterType,
     handleDeleteAdminCharacter,
   };
 }

@@ -226,12 +226,67 @@
   cursor: not-allowed;
 }
 
+.admin-selector-type-btn {
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #0f766e;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-selector-type-btn:hover:not(:disabled) {
+  background: #0d9488;
+}
+
+.admin-selector-type-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.admin-selector-filters {
+  width: 100%;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-filter-btn {
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.admin-filter-btn.is-active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
 .admin-selector-list {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 2px;
+}
+
+.admin-selector-empty {
+  font-size: 0.78rem;
+  color: #64748b;
 }
 
 .admin-selector-item {
@@ -293,6 +348,25 @@
 }
 
 .admin-modal-input {
+  width: 100%;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  background: #ffffff;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.admin-modal-type-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.admin-modal-select {
   width: 100%;
   border: 1px solid #94a3b8;
   border-radius: 8px;
@@ -1742,6 +1816,32 @@
   background: #991b1b;
 }
 
+.app-bg.dark-mode .admin-selector-type-btn {
+  background: #115e59;
+  border-color: #14b8a6;
+  color: #ffffff;
+}
+
+.app-bg.dark-mode .admin-selector-type-btn:hover:not(:disabled) {
+  background: #0f766e;
+}
+
+.app-bg.dark-mode .admin-filter-btn {
+  background: #111827;
+  color: #cbd5e1;
+  border-color: #475569;
+}
+
+.app-bg.dark-mode .admin-filter-btn:hover {
+  background: #1f2937;
+}
+
+.app-bg.dark-mode .admin-filter-btn.is-active {
+  background: #334155;
+  color: #ffffff;
+  border-color: #64748b;
+}
+
 .app-bg.dark-mode .admin-modal-card {
   background: #0f172a;
   border-color: #334155;
@@ -1760,6 +1860,16 @@
 }
 
 .app-bg.dark-mode .admin-modal-input {
+  background: #0b1220;
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+.app-bg.dark-mode .admin-modal-type-label {
+  color: #cbd5e1;
+}
+
+.app-bg.dark-mode .admin-modal-select {
   background: #0b1220;
   border-color: #475569;
   color: #f8fafc;
@@ -1807,6 +1917,10 @@
   background: #334155;
   color: #ffffff;
   border-color: #64748b;
+}
+
+.app-bg.dark-mode .admin-selector-empty {
+  color: #94a3b8;
 }
 
 .app-bg.dark-mode .criticos-fontes-resumo strong {
