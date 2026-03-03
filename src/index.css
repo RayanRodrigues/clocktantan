@@ -474,6 +474,84 @@
   background: #cbd5e1;
 }
 
+.criticos-fontes-panel {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: #f8fafc;
+}
+
+.criticos-fontes-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.criticos-fontes-resumo strong {
+  color: #0f172a;
+}
+
+.criticos-fontes-controles {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.critico-fonte-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.critico-fonte-item label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.critico-fonte-item > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.critico-fonte-item button {
+  width: 26px;
+  height: 24px;
+  border: 1px solid #64748b;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.critico-fonte-item button:hover {
+  background: #cbd5e1;
+}
+
+.critico-fonte-item button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.critico-fonte-item span {
+  min-width: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 /* Panels */
 .painel {
   background: white;

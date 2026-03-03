@@ -24,6 +24,11 @@ export interface CriticosExtrasState {
   [attr: string]: number;
 }
 
+export interface CriticosFontesState {
+  itens: number;
+  passivas: number;
+}
+
 export interface SkillMark {
   plus15: boolean;
   plus25: boolean;
@@ -232,6 +237,13 @@ export function initCriticosExtras(): CriticosExtrasState {
   return extras;
 }
 
+export function initCriticosFontes(): CriticosFontesState {
+  return {
+    itens: 0,
+    passivas: 0,
+  };
+}
+
 export function initPericias(): SkillsState {
   const pericias: SkillsState = {};
   TODAS_PERICIAS.forEach((nome) => {
@@ -250,6 +262,7 @@ export interface PersistedState {
   pontosDistribuir: number;
   acertosComuns: AccuracyState;
   criticosExtras: CriticosExtrasState;
+  criticosFontes: CriticosFontesState;
   decks: DeckState;
   resultados: ResultState;
   flipped: FlipState;
@@ -289,12 +302,23 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
   ATRIBUTOS.forEach((attr) => {
     criticosExtras[attr] = Math.min(criticosExtras[attr], acertos[attr]);
   });
+  const criticosFontes = initCriticosFontes();
+  if (typeof parsed.criticosFontes?.itens === "number" && Number.isFinite(parsed.criticosFontes.itens)) {
+    criticosFontes.itens = Math.max(0, Math.floor(parsed.criticosFontes.itens));
+  }
+  if (
+    typeof parsed.criticosFontes?.passivas === "number" &&
+    Number.isFinite(parsed.criticosFontes.passivas)
+  ) {
+    criticosFontes.passivas = Math.max(0, Math.floor(parsed.criticosFontes.passivas));
+  }
   const transformacoesTotaisSabedoria = Math.floor(
     ((acertos["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) + ACERTOS_CRITICOS_FIXOS) / 10
   );
+  const transformacoesTotais = transformacoesTotaisSabedoria + criticosFontes.itens + criticosFontes.passivas;
   let usadas = ATRIBUTOS.reduce((sum, attr) => sum + criticosExtras[attr], 0);
-  if (usadas > transformacoesTotaisSabedoria) {
-    let excesso = usadas - transformacoesTotaisSabedoria;
+  if (usadas > transformacoesTotais) {
+    let excesso = usadas - transformacoesTotais;
     for (const attr of ATRIBUTOS.slice().reverse()) {
       if (excesso <= 0) break;
       const remover = Math.min(excesso, criticosExtras[attr]);
@@ -409,6 +433,7 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     pontosDistribuir,
     acertosComuns: acertos,
     criticosExtras,
+    criticosFontes,
     decks,
     resultados,
     flipped,
@@ -432,6 +457,7 @@ export function toCloudState(state: PersistedState): CloudState {
     pontosDistribuir: state.pontosDistribuir,
     acertosComuns: state.acertosComuns,
     criticosExtras: state.criticosExtras,
+    criticosFontes: state.criticosFontes,
     pericias: state.pericias,
   };
 }

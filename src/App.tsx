@@ -20,12 +20,14 @@ import {
   getSkillBonusTotal,
   initAcertos,
   initCriticosExtras,
+  initCriticosFontes,
   initFlipped,
   initPericias,
   initResults,
   loadPersistedState,
   type AccuracyState,
   type CriticosExtrasState,
+  type CriticosFontesState,
   type PersistedState,
   type DeckState,
   type ResultState,
@@ -61,6 +63,9 @@ export function App() {
   const [criticosExtras, setCriticosExtras] = useState<CriticosExtrasState>(
     initialState?.criticosExtras ?? initCriticosExtras()
   );
+  const [criticosFontes, setCriticosFontes] = useState<CriticosFontesState>(
+    initialState?.criticosFontes ?? initCriticosFontes()
+  );
   const [decks, setDecks] = useState<DeckState>(
     initialState?.decks ??
       criarTodosDecks(
@@ -81,6 +86,7 @@ export function App() {
     initialState?.planoSubida ?? null
   );
   const [mostrarEscolhaSubida, setMostrarEscolhaSubida] = useState(false);
+  const [mostrarPainelCriticos, setMostrarPainelCriticos] = useState(false);
   const buildPersistedState = useCallback(
     (): PersistedState => ({
       personagemNome,
@@ -92,6 +98,7 @@ export function App() {
       pontosDistribuir,
       acertosComuns,
       criticosExtras,
+      criticosFontes,
       decks,
       resultados,
       flipped,
@@ -108,6 +115,7 @@ export function App() {
       pontosDistribuir,
       acertosComuns,
       criticosExtras,
+      criticosFontes,
       decks,
       resultados,
       flipped,
@@ -126,6 +134,7 @@ export function App() {
     setPontosDistribuir(state.pontosDistribuir);
     setAcertosComuns(state.acertosComuns);
     setCriticosExtras(state.criticosExtras);
+    setCriticosFontes(state.criticosFontes);
     setDecks(state.decks);
     setResultados(state.resultados);
     setFlipped(state.flipped);
@@ -159,7 +168,9 @@ export function App() {
   const sabedoriaTotal =
     (acertosComuns["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) +
     ACERTOS_CRITICOS_FIXOS;
-  const transformacoesCriticoTotais = Math.floor(sabedoriaTotal / 10);
+  const transformacoesCriticoSabedoria = Math.floor(sabedoriaTotal / 10);
+  const transformacoesCriticoTotais =
+    transformacoesCriticoSabedoria + criticosFontes.itens + criticosFontes.passivas;
   const transformacoesCriticoUsadas = ATRIBUTOS.reduce(
     (sum, attr) => sum + (criticosExtras[attr] || 0),
     0
@@ -174,7 +185,11 @@ export function App() {
   );
 
   const normalizeCriticosExtras = useCallback(
-    (acertos: AccuracyState, rawExtras: CriticosExtrasState): CriticosExtrasState => {
+    (
+      acertos: AccuracyState,
+      rawExtras: CriticosExtrasState,
+      fontes: CriticosFontesState
+    ): CriticosExtrasState => {
       const normalized = initCriticosExtras();
       ATRIBUTOS.forEach((attr) => {
         const raw = rawExtras[attr] ?? 0;
@@ -186,7 +201,7 @@ export function App() {
 
       const transformacoesTotais = Math.floor(
         ((acertos["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) + ACERTOS_CRITICOS_FIXOS) / 10
-      );
+      ) + Math.max(0, fontes.itens) + Math.max(0, fontes.passivas);
       let usadas = ATRIBUTOS.reduce((sum, attr) => sum + normalized[attr], 0);
       if (usadas > transformacoesTotais) {
         let excesso = usadas - transformacoesTotais;
@@ -286,7 +301,11 @@ export function App() {
         ...acertosComuns,
         [attr]: acertosComuns[attr] + 1,
       };
-      const novosCriticosExtras = normalizeCriticosExtras(novoAcertos, criticosExtras);
+      const novosCriticosExtras = normalizeCriticosExtras(
+        novoAcertos,
+        criticosExtras,
+        criticosFontes
+      );
       setAcertosComuns(novoAcertos);
       setCriticosExtras(novosCriticosExtras);
       setPontosDistribuir((prev) => prev - 1);
@@ -315,6 +334,7 @@ export function App() {
     [
       acertosComuns,
       criticosExtras,
+      criticosFontes,
       normalizeCriticosExtras,
       planoSubida,
       pontosDistribuir,
@@ -331,7 +351,11 @@ export function App() {
         ...acertosComuns,
         [attr]: acertosComuns[attr] - 1,
       };
-      const novosCriticosExtras = normalizeCriticosExtras(novoAcertos, criticosExtras);
+      const novosCriticosExtras = normalizeCriticosExtras(
+        novoAcertos,
+        criticosExtras,
+        criticosFontes
+      );
       setAcertosComuns(novoAcertos);
       setCriticosExtras(novosCriticosExtras);
       setPontosDistribuir((prev) => prev + 1);
@@ -356,7 +380,54 @@ export function App() {
         return next;
       });
     },
-    [acertosComuns, criticosExtras, normalizeCriticosExtras]
+    [acertosComuns, criticosExtras, criticosFontes, normalizeCriticosExtras]
+  );
+
+  const handleAjustarCriticosFonte = useCallback(
+    (campo: keyof CriticosFontesState, delta: number) => {
+      const proximoValor = Math.max(0, (criticosFontes[campo] || 0) + delta);
+      if (proximoValor === criticosFontes[campo]) return;
+      const novasFontes: CriticosFontesState = {
+        ...criticosFontes,
+        [campo]: proximoValor,
+      };
+      const novosCriticosExtras = normalizeCriticosExtras(
+        acertosComuns,
+        criticosExtras,
+        novasFontes
+      );
+
+      setCriticosFontes(novasFontes);
+      setCriticosExtras(novosCriticosExtras);
+      setDecks((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((attr) => {
+          if (novosCriticosExtras[attr] !== criticosExtras[attr]) {
+            next[attr] = criarDeck(acertosComuns[attr], novosCriticosExtras[attr]);
+          }
+        });
+        return next;
+      });
+      setFlipped((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((attr) => {
+          if (novosCriticosExtras[attr] !== criticosExtras[attr]) {
+            next[attr] = false;
+          }
+        });
+        return next;
+      });
+      setResultados((prev) => {
+        const next = { ...prev };
+        ATRIBUTOS.forEach((attr) => {
+          if (novosCriticosExtras[attr] !== criticosExtras[attr]) {
+            next[attr] = null;
+          }
+        });
+        return next;
+      });
+    },
+    [acertosComuns, criticosExtras, criticosFontes, normalizeCriticosExtras]
   );
 
   const aplicarSubidaNivel = useCallback((mode: LevelUpPlan["mode"]) => {
@@ -613,6 +684,13 @@ export function App() {
           >
             ⬆ Subir Nível
           </button>
+          <button
+            type="button"
+            onClick={() => setMostrarPainelCriticos((prev) => !prev)}
+            className="py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+          >
+            ✨ Crítico
+          </button>
           {planoSubida && (
             <span className="text-xs text-slate-600 font-semibold">
               {planoSubida.mode === "three_different"
@@ -647,6 +725,60 @@ export function App() {
                 >
                   Fechar
                 </button>
+              </div>
+            </div>
+          )}
+          {mostrarPainelCriticos && (
+            <div className="criticos-fontes-panel">
+              <div className="criticos-fontes-resumo">
+                <strong>Fontes de critico:</strong>
+                <span>Sabedoria: {transformacoesCriticoSabedoria}</span>
+                <span>Itens: {criticosFontes.itens}</span>
+                <span>Passivas: {criticosFontes.passivas}</span>
+                <span>
+                  Total: {transformacoesCriticoTotais} · Usados: {transformacoesCriticoUsadas} ·
+                  Restantes: {transformacoesCriticoDisponiveis}
+                </span>
+              </div>
+              <div className="criticos-fontes-controles">
+                <div className="critico-fonte-item">
+                  <label>Itens</label>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleAjustarCriticosFonte("itens", -1)}
+                      disabled={criticosFontes.itens <= 0}
+                    >
+                      -
+                    </button>
+                    <span>{criticosFontes.itens}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleAjustarCriticosFonte("itens", 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="critico-fonte-item">
+                  <label>Passivas</label>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleAjustarCriticosFonte("passivas", -1)}
+                      disabled={criticosFontes.passivas <= 0}
+                    >
+                      -
+                    </button>
+                    <span>{criticosFontes.passivas}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleAjustarCriticosFonte("passivas", 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
