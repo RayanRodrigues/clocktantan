@@ -129,6 +129,11 @@ Depois de definir a claim, faca logout/login para renovar o token.
 - Imagens das cartas devem ficar em `public/cards`.
 - Fichas antigas sem `type` sao tratadas como `player`.
 
+## Creditos
+
+- Criador e escritor do sistema RPG: **G.O.S Show**
+- Desenvolvimento da aplicacao: **Rayan de Paula**
+
 ## Licenca
 
 Projeto privado para uso do Clock Tan-Tan.

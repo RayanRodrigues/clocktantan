@@ -1486,6 +1486,34 @@
   margin-top: 25px;
 }
 
+.app-footer {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #cbd5e1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.app-footer a {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.app-footer a:hover {
+  text-decoration: underline;
+}
+
+.app-footer-sep {
+  color: #94a3b8;
+}
+
 /* Perícias grid */
 .pericias-grid {
   display: grid;
@@ -1943,6 +1971,19 @@
 .app-bg.dark-mode .card-stats {
   background: #111827;
   border-color: #334155;
+}
+
+.app-bg.dark-mode .app-footer {
+  border-top-color: #334155;
+  color: #cbd5e1;
+}
+
+.app-bg.dark-mode .app-footer a {
+  color: #93c5fd;
+}
+
+.app-bg.dark-mode .app-footer-sep {
+  color: #64748b;
 }
 
 .app-bg.dark-mode .panel-table td,

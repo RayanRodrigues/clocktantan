@@ -943,6 +943,26 @@ export function App() {
             panelClassName="anotacoes-painel"
           />
         </div>
+
+        <footer className="app-footer">
+          <span>Criado por Rayan de Paula</span>
+          <span className="app-footer-sep">·</span>
+          <a
+            href="https://github.com/RayanRodrigues"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+          <span className="app-footer-sep">·</span>
+          <a
+            href="https://www.linkedin.com/in/rayan-rodrigues-pontes-de-paula-24b9a5233/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            LinkedIn
+          </a>
+        </footer>
       </div>
     </div>
   );
