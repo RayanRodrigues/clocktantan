@@ -30,6 +30,7 @@ import {
   type CriticosFontesState,
   type PersistedState,
   type DeckState,
+  type Card,
   type ResultState,
   type FlipState,
   type SkillsState,
@@ -242,21 +243,29 @@ export function App() {
   );
 
   const handlePuxar = useCallback(
-    (attr: string) => {
+    (attr: string, quantidade = 1): Card[] | null => {
       const deck = decks[attr];
-      if (deck.length === 0) {
-        alert(`Deck de ${attr} vazio! Reembaralhe.`);
-        return;
+      const qtd = Math.max(1, Math.min(3, Math.floor(quantidade)));
+      if (deck.length < qtd) {
+        alert(`Deck de ${attr} não possui ${qtd} carta(s). Reembaralhe.`);
+        return null;
       }
       const novoDeck = [...deck];
-      const carta = novoDeck.pop()!;
+      const cartas: Card[] = [];
+      for (let i = 0; i < qtd; i++) {
+        const carta = novoDeck.pop();
+        if (carta) cartas.push(carta);
+      }
       setDecks((prev) => ({ ...prev, [attr]: novoDeck }));
-      setResultados((prev) => ({ ...prev, [attr]: carta }));
-      // Flip the card to show result
-      setFlipped((prev) => ({ ...prev, [attr]: true }));
+      return cartas;
     },
     [decks]
   );
+
+  const handleConcluirPuxada = useCallback((attr: string, cartas: Card[]) => {
+    setResultados((prev) => ({ ...prev, [attr]: cartas }));
+    setFlipped((prev) => ({ ...prev, [attr]: true }));
+  }, []);
 
   const handleFlipBack = useCallback((attr: string) => {
     setFlipped((prev) => ({ ...prev, [attr]: false }));
@@ -269,7 +278,7 @@ export function App() {
         [attr]: criarDeck(acertosComuns[attr], criticosExtras[attr]),
       }));
       setFlipped((prev) => ({ ...prev, [attr]: false }));
-      setResultados((prev) => ({ ...prev, [attr]: null }));
+      setResultados((prev) => ({ ...prev, [attr]: [] }));
     },
     [acertosComuns, criticosExtras]
   );
@@ -445,7 +454,7 @@ export function App() {
         const next = { ...prev };
         ATRIBUTOS.forEach((attr) => {
           if (novosCriticosExtras[attr] !== criticosExtras[attr]) {
-            next[attr] = null;
+            next[attr] = [];
           }
         });
         return next;
@@ -505,7 +514,7 @@ export function App() {
         [attr]: criarDeck(acertosComuns[attr], novosCriticosExtras[attr]),
       }));
       setFlipped((prev) => ({ ...prev, [attr]: false }));
-      setResultados((prev) => ({ ...prev, [attr]: null }));
+      setResultados((prev) => ({ ...prev, [attr]: [] }));
     },
     [acertosComuns, criticosExtras, transformacoesCriticoDisponiveis]
   );
@@ -867,7 +876,8 @@ export function App() {
                   criticosExtrasNoAtributo={criticosExtras[attr] || 0}
                   transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
                   mostrarControlesEdicao={modoEdicaoDecks}
-                  onPuxar={() => handlePuxar(attr)}
+                  onPuxar={(quantidade) => handlePuxar(attr, quantidade)}
+                  onConcluirPuxada={(cartas) => handleConcluirPuxada(attr, cartas)}
                   onReembaralhar={() => handleReembaralhar(attr)}
                   onDecrement={() => handleDecrement(attr)}
                   onIncrement={() => handleIncrement(attr)}

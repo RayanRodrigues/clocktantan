@@ -185,6 +185,29 @@
   cursor: pointer;
 }
 
+@keyframes drawCardGhost {
+  0% {
+    transform: translate(0, 0) rotate(-8deg) scale(0.92);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(var(--draw-tx), var(--draw-ty)) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes deckPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.986);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .flip-card-inner {
   position: relative;
   width: 100%;
@@ -351,6 +374,264 @@
   font-style: italic;
 }
 
+.flip-card.drawing .flip-card-inner {
+  animation: deckPulse 0.42s ease;
+}
+
+.draw-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  pointer-events: auto;
+}
+
+.draw-center-card {
+  position: fixed;
+  transform-origin: center;
+  transform: translate(0, 0);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.draw-center-card.at-center {
+  animation: drawCardGhost 0.56s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.draw-center-card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.draw-center-card.revealed .draw-center-card-inner {
+  transform: rotateY(180deg);
+}
+
+.draw-center-card.can-flip {
+  cursor: pointer;
+}
+
+.draw-center-card-front,
+.draw-center-card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.draw-center-card-back {
+  transform: rotateY(180deg);
+}
+
+.draw-center-strip {
+  display: flex;
+  gap: var(--center-gap, 14px);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.draw-center-slot {
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 1200px;
+}
+
+.draw-center-slot-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.draw-center-slot.revealed .draw-center-slot-inner {
+  transform: rotateY(180deg);
+}
+
+.draw-center-slot.active-next {
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.35));
+}
+
+.draw-center-slot-front,
+.draw-center-slot-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.draw-center-slot-back {
+  transform: rotateY(180deg);
+}
+
+.card-back-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  padding: 0;
+  background: transparent;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+}
+
+.card-back-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(147, 51, 234, 0.32), transparent 42%),
+    radial-gradient(circle at 70% 70%, rgba(249, 115, 22, 0.3), transparent 45%),
+    radial-gradient(circle at 55% 48%, rgba(59, 130, 246, 0.33), transparent 43%),
+    linear-gradient(165deg, #060f2e, #140b3f 40%, #061745 80%);
+  color: #fff;
+}
+
+.card-back-inner.has-image {
+  justify-content: flex-end;
+  padding: 0 10px 10px;
+  background: var(--card-back-image) center / contain no-repeat;
+  background-color: #0b1020;
+}
+
+.card-back-title {
+  font-size: clamp(2rem, 4vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.card-back-subtitle {
+  font-size: clamp(1.1rem, 2.2vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.card-back-progress {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0.92;
+}
+
+.card-back-click-hint {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.card-back-overlay-text {
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgba(2, 6, 23, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.draw-center-card-back .card-face {
+  border-width: 3px;
+  border-color: #f8fafc;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5);
+}
+
+.draw-center-card-back .card-result-body {
+  justify-content: center;
+}
+
+.draw-center-card-back .result-icon {
+  font-size: clamp(3.4rem, 5vw, 5rem);
+}
+
+.draw-center-card-back .result-text {
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+}
+
+.draw-center-slot-back .card-face {
+  border-width: 3px;
+  border-color: #f8fafc;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5);
+}
+
+.draw-center-slot-back .card-result-body {
+  justify-content: center;
+}
+
+.draw-center-slot-back .result-icon {
+  font-size: clamp(3.1rem, 4vw, 4.6rem);
+}
+
+.draw-center-slot-back .result-text {
+  font-size: clamp(1rem, 1.6vw, 1.45rem);
+}
+
+.draw-results-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.draw-results-inline span {
+  font-size: 1.1rem;
+}
+
+.center-hint {
+  margin-top: 8px;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.center-result-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0b1020;
+}
+
+.result-image-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-image-card {
+  width: min(180px, 58%);
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.28));
+}
+
+.result-image-small {
+  width: 72px;
+  max-height: 98px;
+}
+
+.draw-card-ghost {
+  pointer-events: none;
+}
+
+.draw-card-ghost-fixed {
+  pointer-events: none;
+}
+
 .card-puxar-hint {
   color: #8b93a7;
 }
@@ -430,6 +711,35 @@
   display: flex;
   gap: 6px;
   margin-top: 8px;
+}
+
+.pull-count-group {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pull-count-btn {
+  min-width: 34px;
+  padding: 7px 6px;
+  border: 2px solid #64748b;
+  background: #f8fafc;
+  color: #1e293b;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pull-count-btn:hover {
+  background: #e2e8f0;
+}
+
+.pull-count-btn.active {
+  background: #334155;
+  border-color: #1e293b;
+  color: #ffffff;
 }
 
 .card-controls button {
@@ -1226,6 +1536,22 @@
 .app-bg.dark-mode .anotacoes-toolbar select:hover,
 .app-bg.dark-mode .pericia-tag-btn:hover {
   background: #334155;
+}
+
+.app-bg.dark-mode .pull-count-btn {
+  background: #1f2937;
+  color: #dbe6f8;
+  border-color: #475569;
+}
+
+.app-bg.dark-mode .pull-count-btn:hover {
+  background: #334155;
+}
+
+.app-bg.dark-mode .pull-count-btn.active {
+  background: #475569;
+  border-color: #64748b;
+  color: #ffffff;
 }
 
 .app-bg.dark-mode .modo-edicao-toggle:not(.text-white),

@@ -13,7 +13,7 @@ export interface AccuracyState {
 }
 
 export interface ResultState {
-  [attr: string]: Card | null;
+  [attr: string]: Card[];
 }
 
 export interface FlipState {
@@ -216,7 +216,7 @@ export function initAcertos(): AccuracyState {
 export function initResults(): ResultState {
   const res: ResultState = {};
   ATRIBUTOS.forEach((attr) => {
-    res[attr] = null;
+    res[attr] = [];
   });
   return res;
 }
@@ -338,8 +338,11 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
   const resultados = initResults();
   ATRIBUTOS.forEach((attr) => {
     const savedResult = parsed.resultados?.[attr];
-    if (savedResult === null || isCard(savedResult)) {
+    if (Array.isArray(savedResult) && savedResult.every(isCard)) {
       resultados[attr] = savedResult;
+    } else if (isCard(savedResult)) {
+      // Backward compatibility: old format stored a single card or null.
+      resultados[attr] = [savedResult];
     }
   });
 
@@ -459,6 +462,7 @@ export function toCloudState(state: PersistedState): CloudState {
     criticosExtras: state.criticosExtras,
     criticosFontes: state.criticosFontes,
     pericias: state.pericias,
+    planoSubida: state.planoSubida,
   };
 }
 
