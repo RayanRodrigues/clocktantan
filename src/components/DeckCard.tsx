@@ -363,17 +363,6 @@ export function DeckCard({
                   <h3>{attr}</h3>
                   <p className="card-subtitle">{theme.subtitle}</p>
                 </div>
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    fontSize: "1.8rem",
-                    position: "relative",
-                    zIndex: 2,
-                    filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
-                  }}
-                >
-                  {theme.emoji}
-                </div>
               </div>
 
               <div className="card-body">
@@ -429,17 +418,6 @@ export function DeckCard({
                 <div className="card-header-text">
                   <h3>{attr}</h3>
                   <p className="card-subtitle">Resultado do Saque</p>
-                </div>
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    fontSize: "1.8rem",
-                    position: "relative",
-                    zIndex: 2,
-                    filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
-                  }}
-                >
-                  {theme.emoji}
                 </div>
               </div>
 
