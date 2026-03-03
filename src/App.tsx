@@ -687,14 +687,13 @@ export function App() {
           </button>
           <button
             type="button"
-            onClick={() => setMostrarPainelCriticos((prev) => !prev)}
-            className="py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
-          >
-            ✨ Crítico
-          </button>
-          <button
-            type="button"
-            onClick={() => setModoEdicaoDecks((prev) => !prev)}
+            onClick={() =>
+              setModoEdicaoDecks((prev) => {
+                const next = !prev;
+                if (!next) setMostrarPainelCriticos(false);
+                return next;
+              })
+            }
             className={`py-2 px-4 border-2 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md ${
               modoEdicaoDecks
                 ? "border-amber-700 bg-amber-600 hover:bg-amber-700 text-white"
@@ -703,6 +702,15 @@ export function App() {
           >
             {modoEdicaoDecks ? "✏️ Editando decks" : "✏️ Editar decks"}
           </button>
+          {modoEdicaoDecks && (
+            <button
+              type="button"
+              onClick={() => setMostrarPainelCriticos((prev) => !prev)}
+              className="py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+            >
+              ✨ Crítico
+            </button>
+          )}
           {planoSubida && (
             <span className="text-xs text-slate-600 font-semibold">
               {planoSubida.mode === "three_different"
@@ -740,7 +748,7 @@ export function App() {
               </div>
             </div>
           )}
-          {mostrarPainelCriticos && (
+          {modoEdicaoDecks && mostrarPainelCriticos && (
             <div className="criticos-fontes-panel">
               <div className="criticos-fontes-resumo">
                 <strong>Fontes de critico:</strong>
