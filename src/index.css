@@ -1584,7 +1584,7 @@
 .session-chat {
   display: flex;
   flex-direction: column;
-  min-height: 320px;
+  min-height: 0;
 }
 
 .session-chat-header {
@@ -1632,7 +1632,7 @@
 }
 
 .chat-outside .session-chat {
-  min-height: 620px;
+  height: min(78vh, 760px);
   width: 100%;
 }
 
@@ -1655,8 +1655,9 @@
 }
 
 .chat-outside .session-chat-feed {
-  min-height: 500px;
-  max-height: 68vh;
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: none;
 }
 
 .info-section .session-chat {
@@ -1674,8 +1675,8 @@
   background: #f8fafc;
   padding: 10px;
   overflow-y: auto;
-  min-height: 210px;
-  max-height: 340px;
+  min-height: 0;
+  max-height: none;
 }
 
 .session-chat-system {
@@ -1938,6 +1939,7 @@
     width: 100%;
   }
   .chat-outside .session-chat {
+    height: auto;
     min-height: 320px;
   }
   .chat-outside .session-chat-feed {
