@@ -1,11 +1,24 @@
 ﻿import { useState, useCallback, useEffect } from "react";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
 import { AdminCharacterSelector } from "./components/AdminCharacterSelector";
 import { AuthBar } from "./components/AuthBar";
 import { DeckCard } from "./components/DeckCard";
 import { CharacterSidebar } from "./components/CharacterSidebar";
 import { NotesEditor } from "./components/NotesEditor";
 import { ReferencePanels } from "./components/ReferencePanels";
+import { SessionChat, type SessionChatMessage } from "./components/SessionChat";
 import { SkillsPanel } from "./components/SkillsPanel";
+import { db } from "./firebase";
 import { useFirebaseCharacterSync } from "./hooks/useFirebaseCharacterSync";
 import {
   ACERTOS_CRITICOS_FIXOS,
@@ -38,6 +51,7 @@ import {
 } from "./utils/gameState";
 
 const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
+const CHAT_ROOM_ID = "mesa-principal";
 type ThemeMode = "light" | "dark";
 
 // ---------- Main App ----------
@@ -104,6 +118,11 @@ export function App() {
   const [mostrarEscolhaSubida, setMostrarEscolhaSubida] = useState(false);
   const [mostrarPainelCriticos, setMostrarPainelCriticos] = useState(false);
   const [modoEdicaoDecks, setModoEdicaoDecks] = useState(false);
+  const [chatMessages, setChatMessages] = useState<SessionChatMessage[]>([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatClearing, setChatClearing] = useState(false);
+  const [chatCollapsed, setChatCollapsed] = useState(false);
   const buildPersistedState = useCallback(
     (): PersistedState => ({
       personagemNome,
@@ -654,11 +673,178 @@ export function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!authUser) {
+      setChatMessages([]);
+      setChatLoading(false);
+      return;
+    }
+    setChatLoading(true);
+    const q = query(
+      collection(db, "rooms", CHAT_ROOM_ID, "messages"),
+      orderBy("createdAt", "asc"),
+      limit(200)
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const items: SessionChatMessage[] = snap.docs.map((docSnap) => {
+          const data = docSnap.data() as {
+            type?: "chat" | "roll";
+            text?: string;
+            senderName?: string;
+            createdAt?: { toDate?: () => Date };
+          };
+          const date =
+            data.createdAt && typeof data.createdAt.toDate === "function"
+              ? data.createdAt.toDate()
+              : null;
+          return {
+            id: docSnap.id,
+            type: data.type === "roll" ? "roll" : "chat",
+            senderName: data.senderName?.trim() || "Jogador",
+            text: data.text?.trim() || "",
+            createdAtLabel: date
+              ? date.toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "--:--",
+          };
+        });
+        setChatMessages(items);
+        setChatLoading(false);
+      },
+      (err) => {
+        console.error("Erro ao carregar chat:", err);
+        setChatLoading(false);
+      }
+    );
+    return () => unsub();
+  }, [authUser]);
+
+  const getSenderName = useCallback(() => {
+    const nomeFicha = personagemNome.trim();
+    if (nomeFicha) return nomeFicha;
+    if (authUser?.displayName?.trim()) return authUser.displayName.trim();
+    if (authUser?.email?.trim()) return authUser.email.split("@")[0];
+    return "Jogador";
+  }, [authUser, personagemNome]);
+
+  const handleSendChatMessage = useCallback(async () => {
+    if (!authUser) {
+      alert("Entre com Google para enviar mensagens.");
+      return;
+    }
+    const text = chatDraft.trim();
+    if (!text) return;
+    try {
+      await addDoc(collection(db, "rooms", CHAT_ROOM_ID, "messages"), {
+        type: "chat",
+        text,
+        senderName: getSenderName(),
+        uid: authUser.uid,
+        characterUid: targetCharacterUid ?? authUser.uid,
+        createdAt: serverTimestamp(),
+      });
+      setChatDraft("");
+    } catch (err) {
+      console.error("Erro ao enviar mensagem no chat:", err);
+      alert("Nao foi possivel enviar mensagem no chat.");
+    }
+  }, [authUser, chatDraft, getSenderName, targetCharacterUid]);
+
+  const publishRollInChat = useCallback(
+    async (attr: string, cartas: Card[]) => {
+      if (!authUser || cartas.length === 0) return;
+      const resultLabel = cartas
+        .map((card) => {
+          switch (card.tipo) {
+            case "acerto":
+              return "OK";
+            case "acerto_critico":
+              return "OK CRIT";
+            case "erro":
+              return "ERRO";
+            case "erro_critico":
+              return "ERRO CRIT";
+          }
+        })
+        .join(", ");
+      const text =
+        cartas.length === 1
+          ? `Teste em ${attr}: ${resultLabel}`
+          : `Teste em ${attr} (${cartas.length} cartas): ${resultLabel}`;
+      try {
+        await addDoc(collection(db, "rooms", CHAT_ROOM_ID, "messages"), {
+          type: "roll",
+          text,
+          senderName: getSenderName(),
+          uid: authUser.uid,
+          characterUid: targetCharacterUid ?? authUser.uid,
+          attr,
+          cards: cartas.map((card) => card.tipo),
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        console.error("Erro ao publicar rolagem no chat:", err);
+      }
+    },
+    [authUser, getSenderName, targetCharacterUid]
+  );
+
+  const handleClearChat = useCallback(async () => {
+    if (!authUser || !isAdmin) return;
+    const ok = window.confirm("Tem certeza que deseja limpar todo o chat da mesa?");
+    if (!ok) return;
+    setChatClearing(true);
+    try {
+      const snap = await getDocs(collection(db, "rooms", CHAT_ROOM_ID, "messages"));
+      await Promise.all(
+        snap.docs.map((docSnap) => deleteDoc(docSnap.ref))
+      );
+    } catch (err) {
+      console.error("Erro ao limpar chat:", err);
+      alert("Nao foi possivel limpar o chat.");
+    } finally {
+      setChatClearing(false);
+    }
+  }, [authUser, isAdmin]);
+
+  const handleConcluirPuxadaComChat = useCallback(
+    (attr: string, cartas: Card[]) => {
+      handleConcluirPuxada(attr, cartas);
+      void publishRollInChat(attr, cartas);
+    },
+    [handleConcluirPuxada, publishRollInChat]
+  );
+
 
   return (
     <div className={`app-bg ${themeMode === "dark" ? "dark-mode" : ""}`}>
+      <div className={`app-layout ${chatCollapsed ? "chat-collapsed" : ""}`}>
       <div className="tool">
         <div className="top-header">
+          <div className="top-header-left">
+            <button
+              type="button"
+              className={`theme-toggle theme-toggle-compact ${
+                themeMode === "dark" ? "theme-toggle-dark" : "theme-toggle-light"
+              }`}
+              onClick={() =>
+                setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))
+              }
+              title={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-label={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              <span className="theme-toggle-text">
+                {themeMode === "dark" ? "NIGHT" : "DAY"}
+              </span>
+              <span className="theme-toggle-knob">
+                <i className={`fas ${themeMode === "dark" ? "fa-moon" : "fa-sun"}`}></i>
+              </span>
+            </button>
+          </div>
           <div className="top-header-center">
             <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
               ⏰ Clock Tan-Tan · Ferramenta do Mestre
@@ -670,21 +856,13 @@ export function App() {
           <div className="top-header-right">
             <button
               type="button"
-              className={`theme-toggle ${
-                themeMode === "dark" ? "theme-toggle-dark" : "theme-toggle-light"
-              }`}
-              onClick={() =>
-                setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))
-              }
-              title={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-              aria-label={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+              className="chat-dock-btn"
+              onClick={() => setChatCollapsed((prev) => !prev)}
+              title={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
+              aria-label={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
             >
-              <span className="theme-toggle-text">
-                {themeMode === "dark" ? "NIGHT MODE" : "DAY MODE"}
-              </span>
-              <span className="theme-toggle-knob">
-                <i className={`fas ${themeMode === "dark" ? "fa-moon" : "fa-sun"}`}></i>
-              </span>
+              <i className={`fas ${chatCollapsed ? "fa-comments" : "fa-comment-slash"}`}></i>{" "}
+              {chatCollapsed ? "Abrir chat" : "Minimizar chat"}
             </button>
           </div>
         </div>
@@ -770,7 +948,7 @@ export function App() {
               onClick={() => setMostrarPainelCriticos((prev) => !prev)}
               className="critico-toggle py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
             >
-              ✨ Crítico
+              ? Crítico
             </button>
           )}
           {planoSubida && (
@@ -883,7 +1061,7 @@ export function App() {
                   transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
                   mostrarControlesEdicao={modoEdicaoDecks}
                   onPuxar={(quantidade) => handlePuxar(attr, quantidade)}
-                  onConcluirPuxada={(cartas) => handleConcluirPuxada(attr, cartas)}
+                  onConcluirPuxada={(cartas) => handleConcluirPuxadaComChat(attr, cartas)}
                   onReembaralhar={() => handleReembaralhar(attr)}
                   onDecrement={() => handleDecrement(attr)}
                   onIncrement={() => handleIncrement(attr)}
@@ -902,14 +1080,16 @@ export function App() {
             </div>
           </div>
 
-          {/* Painel lateral: Afinidade */}
-          <CharacterSidebar
-            personagemImagem={personagemImagem}
-            personagemImagemLink={personagemImagemLink}
-            onPersonagemImagemLinkChange={setPersonagemImagemLink}
-            onUsarImagemPorLink={handleUsarImagemPorLink}
-            onRemoverImagem={() => setPersonagemImagem("")}
-          />
+          <div className="info-section">
+            {/* Painel lateral: Afinidade */}
+            <CharacterSidebar
+              personagemImagem={personagemImagem}
+              personagemImagemLink={personagemImagemLink}
+              onPersonagemImagemLinkChange={setPersonagemImagemLink}
+              onUsarImagemPorLink={handleUsarImagemPorLink}
+              onRemoverImagem={() => setPersonagemImagem("")}
+            />
+          </div>
         </div>
 
         {/* Painéis inferiores */}
@@ -964,9 +1144,34 @@ export function App() {
           </a>
         </footer>
       </div>
+      {!chatCollapsed && (
+        <aside className="chat-outside">
+          <SessionChat
+            title="Chat da Mesa"
+            messages={chatMessages}
+            draft={chatDraft}
+            loading={chatLoading}
+            canClear={isAdmin}
+            clearing={chatClearing}
+            collapsed={false}
+            showToggle={false}
+            onCollapsedChange={setChatCollapsed}
+            disabled={!authUser}
+            onDraftChange={setChatDraft}
+            onSend={() => {
+              void handleSendChatMessage();
+            }}
+            onClear={() => {
+              void handleClearChat();
+            }}
+          />
+        </aside>
+      )}
+      </div>
     </div>
   );
 }
+
 
 
 
