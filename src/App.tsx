@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect } from "react";
 import { AdminCharacterSelector } from "./components/AdminCharacterSelector";
 import { AuthBar } from "./components/AuthBar";
 import { DeckCard } from "./components/DeckCard";
@@ -87,6 +87,7 @@ export function App() {
   );
   const [mostrarEscolhaSubida, setMostrarEscolhaSubida] = useState(false);
   const [mostrarPainelCriticos, setMostrarPainelCriticos] = useState(false);
+  const [modoEdicaoDecks, setModoEdicaoDecks] = useState(false);
   const buildPersistedState = useCallback(
     (): PersistedState => ({
       personagemNome,
@@ -691,6 +692,17 @@ export function App() {
           >
             ✨ Crítico
           </button>
+          <button
+            type="button"
+            onClick={() => setModoEdicaoDecks((prev) => !prev)}
+            className={`py-2 px-4 border-2 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md ${
+              modoEdicaoDecks
+                ? "border-amber-700 bg-amber-600 hover:bg-amber-700 text-white"
+                : "border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800"
+            }`}
+          >
+            {modoEdicaoDecks ? "✏️ Editando decks" : "✏️ Editar decks"}
+          </button>
           {planoSubida && (
             <span className="text-xs text-slate-600 font-semibold">
               {planoSubida.mode === "three_different"
@@ -799,6 +811,7 @@ export function App() {
                   isFlipped={flipped[attr]}
                   criticosExtrasNoAtributo={criticosExtras[attr] || 0}
                   transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
+                  mostrarControlesEdicao={modoEdicaoDecks}
                   onPuxar={() => handlePuxar(attr)}
                   onReembaralhar={() => handleReembaralhar(attr)}
                   onDecrement={() => handleDecrement(attr)}
@@ -863,6 +876,7 @@ export function App() {
     </div>
   );
 }
+
 
 
 

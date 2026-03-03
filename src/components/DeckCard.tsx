@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+﻿import { type CSSProperties } from "react";
 import {
   ACERTOS_CRITICOS_FIXOS,
   ATTR_THEMES,
@@ -149,6 +149,7 @@ export function DeckCard({
   isFlipped,
   criticosExtrasNoAtributo,
   transformacoesCriticoDisponiveis,
+  mostrarControlesEdicao,
   onPuxar,
   onReembaralhar,
   onDecrement,
@@ -164,6 +165,7 @@ export function DeckCard({
   isFlipped: boolean;
   criticosExtrasNoAtributo: number;
   transformacoesCriticoDisponiveis: number;
+  mostrarControlesEdicao: boolean;
   onPuxar: () => void;
   onReembaralhar: () => void;
   onDecrement: () => void;
@@ -331,42 +333,46 @@ export function DeckCard({
       </div>
 
       <div className="card-controls">
-        <button
-          className="btn-decrement"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDecrement();
-          }}
-          disabled={acertosComuns <= 0}
-          title="Remover acerto"
-        >
-          -
-        </button>
-        <button
-          className="btn-increment"
-          onClick={(e) => {
-            e.stopPropagation();
-            onIncrement();
-          }}
-          disabled={pontosDistribuir <= 0}
-          title="Adicionar acerto"
-        >
-          +
-        </button>
-        <button
-          className="btn-increment"
-          onClick={(e) => {
-            e.stopPropagation();
-            onConverterAcertoEmCritico();
-          }}
-          disabled={
-            transformacoesCriticoDisponiveis <= 0 ||
-            criticosExtrasNoAtributo >= acertosComuns
-          }
-          title="Converter 1 acerto em 1 acerto critico"
-        >
-          *
-        </button>
+        {mostrarControlesEdicao && (
+          <>
+            <button
+              className="btn-decrement"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDecrement();
+              }}
+              disabled={acertosComuns <= 0}
+              title="Remover acerto"
+            >
+              -
+            </button>
+            <button
+              className="btn-increment"
+              onClick={(e) => {
+                e.stopPropagation();
+                onIncrement();
+              }}
+              disabled={pontosDistribuir <= 0}
+              title="Adicionar acerto"
+            >
+              +
+            </button>
+            <button
+              className="btn-increment"
+              onClick={(e) => {
+                e.stopPropagation();
+                onConverterAcertoEmCritico();
+              }}
+              disabled={
+                transformacoesCriticoDisponiveis <= 0 ||
+                criticosExtrasNoAtributo >= acertosComuns
+              }
+              title="Converter 1 acerto em 1 acerto critico"
+            >
+              *
+            </button>
+          </>
+        )}
         <button
           className="btn-puxar"
           onClick={(e) => {
@@ -389,4 +395,5 @@ export function DeckCard({
     </div>
   );
 }
+
 
