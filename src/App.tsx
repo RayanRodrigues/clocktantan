@@ -36,8 +36,23 @@ import {
   type LevelUpPlan,
 } from "./utils/gameState";
 
+const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
+type ThemeMode = "light" | "dark";
+
 // ---------- Main App ----------
 export function App() {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") return "light";
+    try {
+      const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === "light" || saved === "dark") return saved;
+    } catch {
+      // ignore localStorage failures
+    }
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  });
   const [initialState] = useState<PersistedState | null>(loadPersistedState);
   const [personagemNome, setPersonagemNome] = useState(
     initialState?.personagemNome ?? ""
@@ -150,6 +165,14 @@ export function App() {
       // Ignore localStorage failures (private mode/quota/etc.)
     }
   }, [buildPersistedState]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+    } catch {
+      // Ignore localStorage failures (private mode/quota/etc.)
+    }
+  }, [themeMode]);
 
   const {
     authUser,
@@ -621,13 +644,37 @@ export function App() {
 
 
   return (
-    <div className="app-bg">
+    <div className={`app-bg ${themeMode === "dark" ? "dark-mode" : ""}`}>
       <div className="tool">
-        <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
-          ⏰ Clock Tan-Tan · Ferramenta do Mestre
-        </h1>
-        <div className="text-center mb-6 text-slate-600 italic">
-          Gerenciamento de decks, progressão, perícias e regras
+        <div className="top-header">
+          <div className="top-header-center">
+            <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
+              ⏰ Clock Tan-Tan · Ferramenta do Mestre
+            </h1>
+            <div className="text-center mb-6 text-slate-600 italic">
+              Gerenciamento de decks, progressão, perícias e regras
+            </div>
+          </div>
+          <div className="top-header-right">
+            <button
+              type="button"
+              className={`theme-toggle ${
+                themeMode === "dark" ? "theme-toggle-dark" : "theme-toggle-light"
+              }`}
+              onClick={() =>
+                setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))
+              }
+              title={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-label={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              <span className="theme-toggle-text">
+                {themeMode === "dark" ? "NIGHT MODE" : "DAY MODE"}
+              </span>
+              <span className="theme-toggle-knob">
+                <i className={`fas ${themeMode === "dark" ? "fa-moon" : "fa-sun"}`}></i>
+              </span>
+            </button>
+          </div>
         </div>
         <AuthBar
           authLoading={authLoading}
@@ -694,10 +741,10 @@ export function App() {
                 return next;
               })
             }
-            className={`py-2 px-4 border-2 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md ${
+            className={`modo-edicao-toggle py-2 px-4 border-2 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md ${
               modoEdicaoDecks
                 ? "border-amber-700 bg-amber-600 hover:bg-amber-700 text-white"
-                : "border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800"
+                : "border-slate-500 bg-slate-200 hover:bg-slate-300"
             }`}
           >
             {modoEdicaoDecks ? "✏️ Editando decks" : "✏️ Editar decks"}
@@ -706,7 +753,7 @@ export function App() {
             <button
               type="button"
               onClick={() => setMostrarPainelCriticos((prev) => !prev)}
-              className="py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+              className="critico-toggle py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
             >
               ✨ Crítico
             </button>

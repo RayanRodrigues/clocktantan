@@ -174,7 +174,7 @@ export function SkillsPanel({
         ))}
       </div>
 
-      <div className="bg-gray-200 p-2 rounded mt-3 text-sm">
+      <div className="pericias-lembrete">
         <i className="fas fa-info-circle"></i> <strong>Lembrete:</strong>{" "}
         Perícias são resolvidas com d100 (rolar abaixo do valor). Dificuldade
         pode ser reduzida para metade ou quarto do valor em tarefas complexas.

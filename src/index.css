@@ -23,6 +23,85 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
+.top-header {
+  position: relative;
+}
+
+.top-header-center {
+  text-align: center;
+}
+
+.top-header-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.theme-toggle {
+  border: 2px solid rgba(15, 23, 42, 0.2);
+  border-radius: 999px;
+  min-width: 190px;
+  height: 56px;
+  padding: 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.25s ease;
+}
+
+.theme-toggle-knob {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.theme-toggle-text {
+  padding: 0 14px;
+}
+
+.theme-toggle-light {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.theme-toggle-light .theme-toggle-knob {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  color: #111827;
+}
+
+.theme-toggle-dark {
+  background: #0b1020;
+  color: #f8fafc;
+  flex-direction: row-reverse;
+}
+
+.theme-toggle-dark .theme-toggle-knob {
+  background: #f8fafc;
+  border: 2px solid #111827;
+  color: #111827;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+.modo-edicao-toggle,
+.critico-toggle {
+  color: #1f2937;
+}
+
 .personagem-info {
   display: flex;
   gap: 12px;
@@ -270,6 +349,10 @@
   color: #888;
   padding: 4px 0 0;
   font-style: italic;
+}
+
+.card-puxar-hint {
+  color: #8b93a7;
 }
 
 /* Card result side */
@@ -822,6 +905,16 @@
   margin-top: 10px;
 }
 
+.pericias-lembrete {
+  background: #e5e7eb;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 12px;
+  font-size: 0.88rem;
+}
+
 .contador {
   display: inline-flex;
   align-items: center;
@@ -974,6 +1067,15 @@
 
 /* Responsive */
 @media (max-width: 1000px) {
+  .top-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-header-right {
+    position: static;
+  }
   .paineis-inferiores {
     grid-template-columns: 1fr;
   }
@@ -1000,6 +1102,16 @@
   .decks-grid {
     grid-template-columns: 1fr;
   }
+  .theme-toggle {
+    min-width: 170px;
+    height: 50px;
+    font-size: 0.95rem;
+  }
+  .theme-toggle-knob {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
   .pericias-grid {
     grid-template-columns: 1fr;
   }
@@ -1010,4 +1122,146 @@
   .flip-card {
     height: 340px;
   }
+}
+
+/* Dark mode */
+.app-bg.dark-mode {
+  background: radial-gradient(circle at top, #1f2937 0%, #0b1220 55%, #050910 100%);
+}
+
+.app-bg.dark-mode .tool {
+  background: #0f172a;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.7);
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode h1,
+.app-bg.dark-mode .text-slate-700,
+.app-bg.dark-mode .text-slate-800,
+.app-bg.dark-mode .panel-title,
+.app-bg.dark-mode .pericia-nome,
+.app-bg.dark-mode .result-text {
+  color: #e2e8f0 !important;
+}
+
+.app-bg.dark-mode .text-slate-600,
+.app-bg.dark-mode .card-deck-count,
+.app-bg.dark-mode .result-hint,
+.app-bg.dark-mode .anotacoes-label {
+  color: #94a3b8 !important;
+}
+
+.app-bg.dark-mode .card-deck-count {
+  color: #b8c2d6 !important;
+}
+
+.app-bg.dark-mode .card-puxar-hint {
+  color: #a9b6cb;
+}
+
+.app-bg.dark-mode .painel p,
+.app-bg.dark-mode .painel li,
+.app-bg.dark-mode .regras p,
+.app-bg.dark-mode .panel-table td,
+.app-bg.dark-mode .panel-table caption {
+  color: #cbd5e1;
+}
+
+.app-bg.dark-mode .nivel-info {
+  background: linear-gradient(135deg, #1e293b, #111827);
+  border-color: #334155;
+}
+
+.app-bg.dark-mode .personagem-campo span,
+.app-bg.dark-mode .criticos-fontes-resumo,
+.app-bg.dark-mode .pericia-percentual {
+  color: #cbd5e1;
+}
+
+.app-bg.dark-mode .criticos-fontes-resumo strong {
+  color: #f8fafc;
+}
+
+.app-bg.dark-mode .personagem-campo input,
+.app-bg.dark-mode .personagem-foto-link input,
+.app-bg.dark-mode .anotacoes-editor,
+.app-bg.dark-mode .horizonte-anotacoes {
+  background: #0b1220;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .painel,
+.app-bg.dark-mode .criticos-fontes-panel,
+.app-bg.dark-mode .subida-nivel-escolha,
+.app-bg.dark-mode .pericia-item,
+.app-bg.dark-mode .card-stats {
+  background: #111827;
+  border-color: #334155;
+}
+
+.app-bg.dark-mode .panel-table td,
+.app-bg.dark-mode .panel-table th {
+  border-color: #334155;
+}
+
+.app-bg.dark-mode .panel-table th {
+  background: #1f2937;
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .card-controls button,
+.app-bg.dark-mode .subida-nivel-opcao,
+.app-bg.dark-mode .subida-nivel-cancelar,
+.app-bg.dark-mode .pericia-tag-btn,
+.app-bg.dark-mode .anotacoes-toolbar button,
+.app-bg.dark-mode .anotacoes-toolbar select {
+  background: #1f2937;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .card-controls button:hover,
+.app-bg.dark-mode .anotacoes-toolbar button:hover,
+.app-bg.dark-mode .anotacoes-toolbar select:hover,
+.app-bg.dark-mode .pericia-tag-btn:hover {
+  background: #334155;
+}
+
+.app-bg.dark-mode .modo-edicao-toggle:not(.text-white),
+.app-bg.dark-mode .critico-toggle {
+  color: #0f172a;
+}
+
+.app-bg.dark-mode .pericia-tag-btn:disabled {
+  opacity: 0.72;
+  color: #9aa9c0;
+  border-color: #42536b;
+}
+
+.app-bg.dark-mode .pericias-lembrete {
+  background: #1f2937;
+  color: #dbe6f8;
+  border-color: #475569;
+}
+
+/* Darken attribute cards while preserving each color identity */
+.app-bg.dark-mode .card-body {
+  background: color-mix(in srgb, var(--card-bg) 22%, #0b1220 78%);
+}
+
+.app-bg.dark-mode .card-bonus {
+  background: color-mix(in srgb, var(--card-bonus-bg) 18%, #0b1220 82%);
+}
+
+.app-bg.dark-mode .card-result-body {
+  background: color-mix(in srgb, var(--card-bg) 20%, #0b1220 80%) !important;
+}
+
+.app-bg.dark-mode .card-stats {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.app-bg.dark-mode .card-stats span {
+  font-weight: 700;
 }

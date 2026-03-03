@@ -236,10 +236,10 @@ export function DeckCard({
                 </div>
 
                 <div
+                  className="card-puxar-hint"
                   style={{
                     textAlign: "center",
                     fontSize: "0.72rem",
-                    color: "#aaa",
                     marginTop: "auto",
                     paddingTop: "4px",
                     display: "flex",
