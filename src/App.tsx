@@ -185,6 +185,8 @@ export function App() {
     handleLoginGoogle,
     handleLogout,
     handleSelectAdminCharacter,
+    handleCreateAdminCharacter,
+    handleDeleteAdminCharacter,
   } = useFirebaseCharacterSync({
     buildPersistedState,
     applyPersistedState,
@@ -700,6 +702,8 @@ export function App() {
           targetCharacterUid={targetCharacterUid}
           charactersList={charactersList}
           onSelectCharacter={handleSelectAdminCharacter}
+          onCreateCharacter={handleCreateAdminCharacter}
+          onDeleteCharacter={handleDeleteAdminCharacter}
         />
 
         <div className="personagem-info">

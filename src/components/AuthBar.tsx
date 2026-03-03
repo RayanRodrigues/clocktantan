@@ -21,22 +21,20 @@ export function AuthBar({
 }: AuthBarProps) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
-      <div className="text-sm text-slate-700">
+      <div className="auth-status">
         {authLoading
           ? "Verificando login..."
           : authUser
           ? `Logado: ${authUser.email ?? authUser.uid}`
           : "Não logado (usando dados locais)"}
         {authUser && (
-          <span className="ml-2 text-xs text-slate-500">
+          <span className="auth-status-meta">
             {cloudLoading ? "Sincronizando..." : "Sincronizado com Firestore"}
           </span>
         )}
         {authUser && (
-          <span className="ml-2 text-xs text-slate-500">
-            {isAdmin
-              ? `(Admin) editando: ${targetCharacterUid}`
-              : `(UID: ${authUser.uid})`}
+          <span className="auth-status-meta">
+            {isAdmin ? `(Admin) editando: ${targetCharacterUid}` : `(UID: ${authUser.uid})`}
           </span>
         )}
       </div>

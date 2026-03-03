@@ -144,6 +144,117 @@
   box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2);
 }
 
+.auth-status {
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.auth-status-meta {
+  margin-left: 8px;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.admin-selector {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-selector-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.admin-selector-select {
+  border: 1px solid #64748b;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 300px;
+  font-size: 0.85rem;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.admin-selector-meta {
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+.admin-selector-create-btn {
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-selector-create-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.admin-selector-create-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.admin-selector-delete-btn {
+  border: 1px solid #b91c1c;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #dc2626;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-selector-delete-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.admin-selector-delete-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.admin-selector-list {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.admin-selector-item {
+  border: 1px solid #94a3b8;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 0.74rem;
+  background: #f8fafc;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-selector-item:hover {
+  background: #e2e8f0;
+}
+
+.admin-selector-item.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
 /* Grid principal */
 .principal {
   display: flex;
@@ -1486,6 +1597,64 @@
 .app-bg.dark-mode .criticos-fontes-resumo,
 .app-bg.dark-mode .pericia-percentual {
   color: #cbd5e1;
+}
+
+.app-bg.dark-mode .auth-status {
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .auth-status-meta {
+  color: #9fb0c9;
+}
+
+.app-bg.dark-mode .admin-selector-label {
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .admin-selector-select {
+  background: #0b1220;
+  color: #f8fafc;
+  border-color: #64748b;
+}
+
+.app-bg.dark-mode .admin-selector-meta {
+  color: #9fb0c9;
+}
+
+.app-bg.dark-mode .admin-selector-create-btn {
+  background: #1e40af;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.app-bg.dark-mode .admin-selector-create-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.app-bg.dark-mode .admin-selector-delete-btn {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.app-bg.dark-mode .admin-selector-delete-btn:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.app-bg.dark-mode .admin-selector-item {
+  background: #111827;
+  color: #dbe6f8;
+  border-color: #475569;
+}
+
+.app-bg.dark-mode .admin-selector-item:hover {
+  background: #1f2937;
+}
+
+.app-bg.dark-mode .admin-selector-item.is-active {
+  background: #334155;
+  color: #ffffff;
+  border-color: #64748b;
 }
 
 .app-bg.dark-mode .criticos-fontes-resumo strong {

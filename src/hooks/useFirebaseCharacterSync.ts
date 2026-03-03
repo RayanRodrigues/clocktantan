@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -321,6 +322,65 @@ export function useFirebaseCharacterSync({
     [loadCharacterFromCloud]
   );
 
+  const handleCreateAdminCharacter = useCallback(
+    async (personagemNome: string) => {
+      if (!authUser || !isAdmin) return null;
+
+      const nomeLimpo = personagemNome.trim();
+      const baseState = normalizePersistedState({
+        personagemNome: nomeLimpo,
+      });
+      const payload = toCloudState(toFirestoreSafeState(baseState));
+      const ref = doc(collection(db, "characters"));
+
+      try {
+        await setDoc(ref, {
+          ownerUid: authUser.uid,
+          stateJson: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.error("Erro ao criar ficha (admin):", err);
+        throw err;
+      }
+
+      loadedCloudUidRef.current = null;
+      desiredCharacterUidRef.current = ref.id;
+      setActiveCharacterUid(ref.id);
+      setCloudLoading(true);
+      try {
+        await loadCharacterFromCloud(ref.id);
+      } finally {
+        setCloudLoading(false);
+      }
+
+      return ref.id;
+    },
+    [authUser, isAdmin, loadCharacterFromCloud]
+  );
+
+  const handleDeleteAdminCharacter = useCallback(
+    async (characterUid: string) => {
+      if (!authUser || !isAdmin) return;
+      if (!characterUid) return;
+
+      await deleteDoc(doc(db, "characters", characterUid));
+
+      if (activeCharacterUid === characterUid) {
+        const fallbackUid =
+          charactersList.find((item) => item.id !== characterUid)?.id ?? authUser.uid;
+        loadedCloudUidRef.current = null;
+        desiredCharacterUidRef.current = fallbackUid;
+        setActiveCharacterUid(fallbackUid);
+        try {
+          await loadCharacterFromCloud(fallbackUid);
+        } catch (err) {
+          console.error("Erro ao carregar ficha após exclusão:", err);
+        }
+      }
+    },
+    [authUser, isAdmin, activeCharacterUid, charactersList, loadCharacterFromCloud]
+  );
+
   return {
     authUser,
     isAdmin,
@@ -331,5 +391,7 @@ export function useFirebaseCharacterSync({
     handleLoginGoogle,
     handleLogout,
     handleSelectAdminCharacter,
+    handleCreateAdminCharacter,
+    handleDeleteAdminCharacter,
   };
 }

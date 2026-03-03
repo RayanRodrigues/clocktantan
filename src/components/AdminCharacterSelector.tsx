@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { User } from "firebase/auth";
 import type { CharacterListItem } from "../hooks/useFirebaseCharacterSync";
 
@@ -7,6 +8,8 @@ interface AdminCharacterSelectorProps {
   targetCharacterUid: string | null;
   charactersList: CharacterListItem[];
   onSelectCharacter: (uid: string) => void | Promise<void>;
+  onCreateCharacter: (nome: string) => void | Promise<unknown>;
+  onDeleteCharacter: (uid: string) => void | Promise<unknown>;
 }
 
 export function AdminCharacterSelector({
@@ -15,15 +18,23 @@ export function AdminCharacterSelector({
   targetCharacterUid,
   charactersList,
   onSelectCharacter,
+  onCreateCharacter,
+  onDeleteCharacter,
 }: AdminCharacterSelectorProps) {
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   if (!authUser || !isAdmin) return null;
+  const activeUid = targetCharacterUid ?? authUser.uid;
+  const activeItem = charactersList.find((item) => item.id === activeUid);
+  const activeName = activeItem?.personagemNome || "Sem nome";
 
   return (
-    <div className="mb-4 flex items-center gap-2 flex-wrap">
-      <span className="text-sm font-semibold text-slate-700">Ficha ativa:</span>
+    <div className="admin-selector">
+      <span className="admin-selector-label">Ficha ativa:</span>
       <select
-        className="border border-slate-400 rounded px-2 py-1 text-sm min-w-[280px]"
-        value={targetCharacterUid ?? authUser.uid}
+        className="admin-selector-select"
+        value={activeUid}
         onChange={(e) => {
           void onSelectCharacter(e.target.value);
         }}
@@ -34,18 +45,61 @@ export function AdminCharacterSelector({
           </option>
         ))}
       </select>
-      <span className="text-xs text-slate-600">
+      <span className="admin-selector-meta">
         {charactersList.length} ficha(s) no Firebase
       </span>
-      <div className="w-full flex flex-wrap gap-2 mt-1">
+      <button
+        type="button"
+        className="admin-selector-create-btn"
+        disabled={creating}
+        onClick={async () => {
+          const nome = window.prompt("Nome da nova ficha:");
+          if (!nome || !nome.trim()) return;
+          setCreating(true);
+          try {
+            await onCreateCharacter(nome);
+          } catch (err) {
+            console.error("Erro ao criar ficha:", err);
+            alert(
+              "Não foi possível criar a ficha no Firebase. Verifique as regras do Firestore para permitir CREATE para admin."
+            );
+          } finally {
+            setCreating(false);
+          }
+        }}
+      >
+        {creating ? "Criando..." : "+ Criar ficha"}
+      </button>
+      <button
+        type="button"
+        className="admin-selector-delete-btn"
+        disabled={deleting || charactersList.length === 0}
+        onClick={async () => {
+          if (!activeUid) return;
+          const ok = window.confirm(
+            `Excluir a ficha ativa?\n\n${activeName} · ${activeUid}\n\nEssa ação não pode ser desfeita.`
+          );
+          if (!ok) return;
+          setDeleting(true);
+          try {
+            await onDeleteCharacter(activeUid);
+          } catch (err) {
+            console.error("Erro ao excluir ficha:", err);
+            alert("Não foi possível excluir a ficha no Firebase.");
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      >
+        {deleting ? "Excluindo..." : "Excluir ficha ativa"}
+      </button>
+      <div className="admin-selector-list">
         {charactersList.map((item) => (
           <button
             key={`admin-list-${item.id}`}
             type="button"
-            className={`text-xs px-2 py-1 rounded border transition-colors ${
-              (targetCharacterUid ?? authUser.uid) === item.id
-                ? "bg-slate-700 text-white border-slate-700"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+            className={`admin-selector-item ${
+              (targetCharacterUid ?? authUser.uid) === item.id ? "is-active" : ""
             }`}
             onClick={() => {
               void onSelectCharacter(item.id);
