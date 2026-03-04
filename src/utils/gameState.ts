@@ -260,6 +260,7 @@ export interface PersistedState {
   personagemNome: string;
   personagemIdade: string;
   personagemImagem: string;
+  vidaAtual: number;
   anotacoes: string;
   anotacoesHorizonte: string;
   nivel: number;
@@ -405,6 +406,11 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     typeof parsed.personagemIdade === "string" ? parsed.personagemIdade : "";
   const personagemImagem =
     typeof parsed.personagemImagem === "string" ? parsed.personagemImagem : "";
+  const vidaMaxima = ((acertos["Constituição"] || ACERTOS_INICIAIS_COMUNS) + ACERTOS_CRITICOS_FIXOS) * 4;
+  const vidaAtual =
+    typeof parsed.vidaAtual === "number" && Number.isFinite(parsed.vidaAtual)
+      ? Math.max(0, Math.min(vidaMaxima, Math.floor(parsed.vidaAtual)))
+      : vidaMaxima;
   const anotacoes = typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
   const anotacoesHorizonte =
     typeof parsed.anotacoesHorizonte === "string" ? parsed.anotacoesHorizonte : "";
@@ -434,6 +440,7 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     personagemNome,
     personagemIdade,
     personagemImagem,
+    vidaAtual,
     anotacoes,
     anotacoesHorizonte,
     nivel,
@@ -458,6 +465,7 @@ export function toCloudState(state: PersistedState): CloudState {
     personagemNome: state.personagemNome,
     personagemIdade: state.personagemIdade,
     personagemImagem: state.personagemImagem,
+    vidaAtual: state.vidaAtual,
     anotacoes: state.anotacoes,
     anotacoesHorizonte: state.anotacoesHorizonte,
     nivel: state.nivel,

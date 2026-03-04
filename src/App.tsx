@@ -75,6 +75,10 @@ export function App() {
       : "light";
   });
   const [initialState] = useState<PersistedState | null>(loadPersistedState);
+  const vidaMaximaInicial =
+    ((initialState?.acertosComuns?.["Constituição"] ?? ACERTOS_INICIAIS_COMUNS) +
+      ACERTOS_CRITICOS_FIXOS) *
+    4;
   const [personagemNome, setPersonagemNome] = useState(
     initialState?.personagemNome ?? ""
   );
@@ -84,6 +88,10 @@ export function App() {
   const [personagemImagem, setPersonagemImagem] = useState(
     initialState?.personagemImagem ?? ""
   );
+  const [vidaAtual, setVidaAtual] = useState(
+    initialState?.vidaAtual ?? vidaMaximaInicial
+  );
+  const [vidaAjusteRapido, setVidaAjusteRapido] = useState("");
   const [personagemImagemLink, setPersonagemImagemLink] = useState("");
   const [anotacoes, setAnotacoes] = useState(initialState?.anotacoes ?? "");
   const [anotacoesHorizonte, setAnotacoesHorizonte] = useState(
@@ -137,6 +145,7 @@ export function App() {
       personagemNome,
       personagemIdade,
       personagemImagem,
+      vidaAtual,
       anotacoes,
       anotacoesHorizonte,
       nivel,
@@ -154,6 +163,7 @@ export function App() {
       personagemNome,
       personagemIdade,
       personagemImagem,
+      vidaAtual,
       anotacoes,
       anotacoesHorizonte,
       nivel,
@@ -173,6 +183,7 @@ export function App() {
     setPersonagemNome(state.personagemNome);
     setPersonagemIdade(state.personagemIdade);
     setPersonagemImagem(state.personagemImagem);
+    setVidaAtual(state.vidaAtual);
     setAnotacoes(state.anotacoes);
     setAnotacoesHorizonte(state.anotacoesHorizonte);
     setNivel(state.nivel);
@@ -224,6 +235,11 @@ export function App() {
   const sabedoriaTotal =
     (acertosComuns["Sabedoria"] || ACERTOS_INICIAIS_COMUNS) +
     ACERTOS_CRITICOS_FIXOS;
+  const vidaMaxima =
+    ((acertosComuns["Constituição"] || ACERTOS_INICIAIS_COMUNS) +
+      ACERTOS_CRITICOS_FIXOS) *
+    4;
+  const vidaPercentual = Math.max(0, Math.min(100, (vidaAtual / vidaMaxima) * 100));
   const transformacoesCriticoSabedoria = Math.floor(sabedoriaTotal / 10);
   const transformacoesCriticoTotais =
     transformacoesCriticoSabedoria + criticosFontes.itens + criticosFontes.passivas;
@@ -239,6 +255,10 @@ export function App() {
     0,
     sabedoriaTotal - (ACERTOS_INICIAIS_COMUNS + ACERTOS_CRITICOS_FIXOS)
   );
+
+  useEffect(() => {
+    setVidaAtual((prev) => Math.max(0, Math.min(prev, vidaMaxima)));
+  }, [vidaMaxima]);
 
   const normalizeCriticosExtras = useCallback(
     (
@@ -561,6 +581,22 @@ export function App() {
     }
     setPersonagemImagem(raw);
   }, [personagemImagemLink]);
+
+  const handleAplicarAjusteVida = useCallback(() => {
+    const raw = vidaAjusteRapido.trim();
+    if (!raw) return;
+    if (!/^[+-]\d+$/.test(raw)) {
+      alert("Use um valor com sinal, ex.: -3 ou +2.");
+      return;
+    }
+    const delta = Number.parseInt(raw, 10);
+    if (!Number.isFinite(delta) || delta === 0) {
+      setVidaAjusteRapido("");
+      return;
+    }
+    setVidaAtual((prev) => Math.max(0, Math.min(vidaMaxima, prev + delta)));
+    setVidaAjusteRapido("");
+  }, [vidaAjusteRapido, vidaMaxima]);
 
   const handleToggleBonusPericia = useCallback(
     (nomePericia: string, bonus: "plus15" | "plus25") => {
@@ -1020,6 +1056,56 @@ export function App() {
               placeholder="Ex.: 27"
             />
           </label>
+        </div>
+
+        <div className="vida-painel">
+          <div className="vida-topo">
+            <span className="vida-titulo">❤️ Vida</span>
+            <span className="vida-valor">
+              {vidaAtual} / {vidaMaxima}
+            </span>
+          </div>
+          <div className="vida-barra">
+            <div
+              className="vida-barra-preenchimento"
+              style={{ width: `${vidaPercentual}%` }}
+            />
+          </div>
+          <div className="vida-acoes">
+            <button type="button" onClick={() => setVidaAtual(vidaMaxima)}>
+              Vida cheia
+            </button>
+            <input
+              type="text"
+              className="vida-ajuste-input"
+              value={vidaAjusteRapido}
+              onChange={(e) => setVidaAjusteRapido(e.target.value)}
+              placeholder="+2 ou -3"
+              aria-label="Ajuste rápido de vida"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAplicarAjusteVida();
+              }}
+            />
+            <button type="button" onClick={handleAplicarAjusteVida}>
+              Aplicar
+            </button>
+            <input
+              type="number"
+              min={0}
+              max={vidaMaxima}
+              value={vidaAtual}
+              onChange={(e) => {
+                const next = Number.parseInt(e.target.value || "0", 10);
+                setVidaAtual(
+                  Number.isFinite(next)
+                    ? Math.max(0, Math.min(vidaMaxima, next))
+                    : 0
+                );
+              }}
+              aria-label="Vida atual"
+            />
+          </div>
+          <div className="vida-meta">Constituição: cada acerto vale 4 de vida.</div>
         </div>
 
         {/* Nível e pontos */}
