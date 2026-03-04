@@ -6,7 +6,14 @@
 }
 
 .app-bg {
-  background: #1e2b3a;
+  background-color: #1e2b3a;
+  background-image:
+    linear-gradient(rgba(10, 18, 32, 0.72), rgba(10, 18, 32, 0.72)),
+    url("/Background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
   margin: 0;
   padding: 20px;
@@ -30,7 +37,8 @@
   flex: 1;
   min-width: 0;
   max-width: 1400px;
-  background: #f0f0f0;
+  background: rgba(240, 240, 240, 0.92);
+  backdrop-filter: blur(2px);
   border-radius: 20px;
   padding: 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -1924,6 +1932,10 @@
 
 /* Responsive */
 @media (max-width: 1000px) {
+  .app-bg {
+    background-attachment: scroll;
+  }
+
   .app-layout {
     flex-direction: column;
   }
@@ -2012,7 +2024,14 @@
 
 /* Dark mode */
 .app-bg.dark-mode {
-  background: radial-gradient(circle at top, #1f2937 0%, #0b1220 55%, #050910 100%);
+  background-color: #0b1220;
+  background-image:
+    linear-gradient(rgba(4, 10, 20, 0.78), rgba(4, 10, 20, 0.78)),
+    url("/Background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .app-bg.dark-mode .tool {
