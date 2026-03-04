@@ -1,8 +1,8 @@
 import {
-  BASE_PERICIA,
   PERICIA_LIMITES,
   PERICIAS_POR_CATEGORIA,
   TODAS_PERICIAS,
+  getPericiaPercentual,
   type SkillsState,
 } from "../utils/gameState";
 
@@ -13,6 +13,8 @@ interface SkillsPanelProps {
   onToggleProficienciaPericia: (nomePericia: string) => void;
   onIncrementEngPericia: (nomePericia: string) => void;
   onDecrementEngPericia: (nomePericia: string) => void;
+  onRolarPericia: (nomePericia: string) => void;
+  rollingPericiaNome: string | null;
 }
 
 export function SkillsPanel({
@@ -22,6 +24,8 @@ export function SkillsPanel({
   onToggleProficienciaPericia,
   onIncrementEngPericia,
   onDecrementEngPericia,
+  onRolarPericia,
+  rollingPericiaNome,
 }: SkillsPanelProps) {
   const totalPlus25 = TODAS_PERICIAS.filter(
     (nome) => pericias[nome].plus25
@@ -92,11 +96,8 @@ export function SkillsPanel({
               {lista.map((nomePericia) => {
                 const mark = pericias[nomePericia];
                 const engBonus = (mark.engStacks || 0) * 4;
-                const percentual =
-                  BASE_PERICIA +
-                  (mark.plus25 ? 25 : 0) +
-                  (mark.plus15 ? 15 : 0) +
-                  engBonus;
+                const percentual = getPericiaPercentual(mark);
+                const rolando = rollingPericiaNome === nomePericia;
                 return (
                   <li key={nomePericia} className="pericia-item">
                     <div className="pericia-linha-topo">
@@ -148,6 +149,20 @@ export function SkillsPanel({
                         title="Remover +4% de engenhosidade"
                       >
                         -ENG
+                      </button>
+                      <button
+                        type="button"
+                        className="pericia-tag-btn pericia-roll-btn"
+                        onClick={() => onRolarPericia(nomePericia)}
+                        disabled={!!rollingPericiaNome && !rolando}
+                        title={
+                          mark.proficient
+                            ? "Rola 2x (vantagem) e usa o melhor resultado"
+                            : "Rola 1x d100"
+                        }
+                      >
+                        <i className="fas fa-dice-d20"></i>{" "}
+                        {rolando ? "Rolando..." : mark.proficient ? "Rolar c/ vantagem" : "Rolar d100"}
                       </button>
                     </div>
                     <div className="pericia-badges">

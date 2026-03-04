@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect, useRef } from "react";
 import {
   addDoc,
   collection,
@@ -14,6 +14,10 @@ import { AdminCharacterSelector } from "./components/AdminCharacterSelector";
 import { AuthBar } from "./components/AuthBar";
 import { DeckCard } from "./components/DeckCard";
 import { CharacterSidebar } from "./components/CharacterSidebar";
+import {
+  DiceRollerOverlay,
+  type DiceRollerOverlayHandle,
+} from "./components/DiceRollerOverlay";
 import { NotesEditor } from "./components/NotesEditor";
 import { ReferencePanels } from "./components/ReferencePanels";
 import { SessionChat, type SessionChatMessage } from "./components/SessionChat";
@@ -30,6 +34,7 @@ import {
   criarDeck,
   criarTodosDecks,
   getMaxEngStacksForBonus,
+  getPericiaPercentual,
   getSkillBonusTotal,
   initAcertos,
   initCriticosExtras,
@@ -53,6 +58,7 @@ import {
 const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
 const CHAT_ROOM_ID = "mesa-principal";
 type ThemeMode = "light" | "dark";
+type SkillRollMode = "normal" | "half" | "quarter";
 
 // ---------- Main App ----------
 export function App() {
@@ -123,6 +129,9 @@ export function App() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatClearing, setChatClearing] = useState(false);
   const [chatCollapsed, setChatCollapsed] = useState(false);
+  const [rollingPericiaNome, setRollingPericiaNome] = useState<string | null>(null);
+  const [rollPericiaEscolha, setRollPericiaEscolha] = useState<string | null>(null);
+  const diceRollerRef = useRef<DiceRollerOverlayHandle | null>(null);
   const buildPersistedState = useCallback(
     (): PersistedState => ({
       personagemNome,
@@ -792,7 +801,110 @@ export function App() {
     },
     [authUser, getSenderName, targetCharacterUid]
   );
+  const publishSkillRollInChat = useCallback(
+    async (
+      nomePericia: string,
+      modo: SkillRollMode,
+      alvoBase: number,
+      alvo: number,
+      rolagens: number[],
+      valorFinal: number,
+      comVantagem: boolean,
+      sucesso: boolean
+    ) => {
+      if (!authUser || rolagens.length === 0) return;
+      const modoLabel =
+        modo === "half" ? "1/2" : modo === "quarter" ? "1/4" : "normal";
+      const textoBase = comVantagem
+        ? `${nomePericia} [${modoLabel}] (vantagem): ${rolagens.join(" e ")} -> ${valorFinal}/${alvo}% ${sucesso ? "SUCESSO" : "FALHA"}`
+        : `${nomePericia} [${modoLabel}]: ${valorFinal}/${alvo}% ${sucesso ? "SUCESSO" : "FALHA"}`;
 
+      try {
+        await addDoc(collection(db, "rooms", CHAT_ROOM_ID, "messages"), {
+          type: "roll",
+          text: `Teste de pericia em ${textoBase}`,
+          senderName: getSenderName(),
+          uid: authUser.uid,
+          characterUid: targetCharacterUid ?? authUser.uid,
+          skill: nomePericia,
+          skillMode: modo,
+          skillBaseTarget: alvoBase,
+          skillTarget: alvo,
+          skillRolls: rolagens,
+          skillFinal: valorFinal,
+          isAdvantage: comVantagem,
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        console.error("Erro ao publicar rolagem de pericia no chat:", err);
+      }
+    },
+    [authUser, getSenderName, targetCharacterUid]
+  );
+
+  const handleRolarPericia = useCallback(
+    async (nomePericia: string, modo: SkillRollMode) => {
+      if (!diceRollerRef.current) {
+        alert("Rolador d100 ainda nao esta pronto.");
+        return;
+      }
+
+      const mark = pericias[nomePericia];
+      if (!mark) return;
+      const alvoBase = getPericiaPercentual(mark);
+      const divisor = modo === "half" ? 2 : modo === "quarter" ? 4 : 1;
+      const alvo = Math.max(1, Math.floor(alvoBase / divisor));
+      const comVantagem = !!mark.proficient;
+
+      setRollingPericiaNome(nomePericia);
+      try {
+        const primeira = await diceRollerRef.current.rollD100({
+          label: `${nomePericia}${comVantagem ? " (1/2)" : ""}`,
+          notation: "1d100",
+        });
+
+        const rolagens = [primeira.value];
+        let valorFinal = primeira.value;
+
+        if (comVantagem) {
+          const segunda = await diceRollerRef.current.rollD100({
+            label: `${nomePericia} (2/2)` ,
+            notation: "1d100",
+          });
+          rolagens.push(segunda.value);
+          valorFinal = Math.min(primeira.value, segunda.value);
+        }
+
+        const sucesso = valorFinal <= alvo;
+        await publishSkillRollInChat(
+          nomePericia,
+          modo,
+          alvoBase,
+          alvo,
+          rolagens,
+          valorFinal,
+          comVantagem,
+          sucesso
+        );
+      } catch (err) {
+        console.error("Erro ao rolar d100 de pericia:", err);
+        alert("Nao foi possivel concluir a rolagem d100.");
+      } finally {
+        setRollingPericiaNome(null);
+      }
+    },
+    [pericias, publishSkillRollInChat]
+  );
+
+  const handleEscolherModoRolagemPericia = useCallback(
+    (modo: SkillRollMode) => {
+      if (!rollPericiaEscolha) return;
+      const nomePericia = rollPericiaEscolha;
+      setRollPericiaEscolha(null);
+      void handleRolarPericia(nomePericia, modo);
+    },
+    [handleRolarPericia, rollPericiaEscolha]
+  );
   const handleClearChat = useCallback(async () => {
     if (!authUser || !isAdmin) return;
     const ok = window.confirm("Tem certeza que deseja limpar todo o chat da mesa?");
@@ -847,7 +959,7 @@ export function App() {
           </div>
           <div className="top-header-center">
             <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
-              ⏰ Clock Tan-Tan · Ferramenta do Mestre
+              ? Clock Tan-Tan · Ferramenta do Mestre
             </h1>
             <div className="text-center mb-6 text-slate-600 italic">
               Gerenciamento de decks, progressão, perícias e regras
@@ -948,7 +1060,7 @@ export function App() {
               onClick={() => setMostrarPainelCriticos((prev) => !prev)}
               className="critico-toggle py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
             >
-              ? Crítico
+              ✨ Crítico
             </button>
           )}
           {planoSubida && (
@@ -1112,6 +1224,10 @@ export function App() {
             onToggleProficienciaPericia={handleToggleProficienciaPericia}
             onIncrementEngPericia={handleIncrementEngPericia}
             onDecrementEngPericia={handleDecrementEngPericia}
+            onRolarPericia={(nomePericia) => {
+              setRollPericiaEscolha(nomePericia);
+            }}
+            rollingPericiaNome={rollingPericiaNome}
           />
 
           <NotesEditor
@@ -1167,10 +1283,60 @@ export function App() {
           />
         </aside>
       )}
+      {rollPericiaEscolha && (
+        <div className="dice-mode-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="dice-mode-modal">
+            <h3>
+              <i className="fas fa-dice-d20"></i> Escolher rolagem
+            </h3>
+            <p>
+              Perícia: <strong>{rollPericiaEscolha}</strong>
+            </p>
+            <p>Selecione o modo do teste:</p>
+            <div className="dice-mode-modal-actions">
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("normal")}
+              >
+                Normal (100%)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("half")}
+              >
+                Dificuldade 1/2
+              </button>
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("quarter")}
+              >
+                Dificuldade 1/4
+              </button>
+              <button
+                type="button"
+                className="dice-mode-cancel"
+                onClick={() => setRollPericiaEscolha(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <DiceRollerOverlay ref={diceRollerRef} />
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
 
 
 

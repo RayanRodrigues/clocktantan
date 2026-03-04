@@ -165,6 +165,10 @@ export function getSkillBonusTotal(mark: Pick<SkillMark, "plus15" | "plus25">): 
   return (mark.plus25 ? 25 : 0) + (mark.plus15 ? 15 : 0);
 }
 
+export function getPericiaPercentual(mark: SkillMark): number {
+  return BASE_PERICIA + getSkillBonusTotal(mark) + (mark.engStacks || 0) * 4;
+}
+
 export function getMaxEngStacksForBonus(bonusTotal: number): number {
   const maxByPercent = Math.floor((80 - BASE_PERICIA - bonusTotal) / 4);
   return Math.max(0, maxByPercent);

@@ -1895,6 +1895,17 @@
   color: #fff;
 }
 
+.pericia-roll-btn {
+  margin-left: auto;
+  background: #0b4aa8;
+  border-color: #0b4aa8;
+  color: #ffffff;
+}
+
+.pericia-roll-btn:hover {
+  background: #0d5ed6;
+}
+
 .pericia-badges {
   display: flex;
   gap: 6px;
@@ -1927,6 +1938,122 @@
 .badge-eng {
   background: #ede9fe;
   color: #5b21b6;
+}
+
+.dice-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(3, 10, 25, 0.72);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dice-overlay-backdrop.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dice-overlay-backdrop.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dice-overlay-panel {
+  width: min(700px, 95vw);
+  border: 1px solid #334155;
+  border-radius: 16px;
+  background: #0f172a;
+  color: #e5e7eb;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.dice-overlay-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, #0b1220, #172554);
+  border-bottom: 1px solid #334155;
+  font-size: 0.98rem;
+}
+
+.dice-overlay-canvas {
+  width: 100%;
+  height: clamp(240px, 42vh, 360px);
+  background: radial-gradient(circle at 50% 28%, #182544, #0a1224 70%);
+}
+
+.dice-overlay-status {
+  padding: 10px 16px 14px;
+  font-size: 0.9rem;
+  color: #93c5fd;
+  border-top: 1px solid #334155;
+}
+
+.dice-mode-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2900;
+  background: rgba(2, 8, 23, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.dice-mode-modal {
+  width: min(460px, 92vw);
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.35);
+  padding: 16px;
+  color: #0f172a;
+}
+
+.dice-mode-modal h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dice-mode-modal p {
+  margin: 0 0 8px;
+}
+
+.dice-mode-modal-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dice-mode-modal-actions button {
+  border: 1px solid #94a3b8;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dice-mode-modal-actions button:hover {
+  background: #e2e8f0;
+}
+
+.dice-mode-modal-actions .dice-mode-cancel {
+  margin-top: 4px;
+  text-align: center;
+  font-weight: 600;
 }
 
 /* Responsive */
@@ -2355,6 +2482,29 @@
 .app-bg.dark-mode .anotacoes-toolbar button:hover,
 .app-bg.dark-mode .anotacoes-toolbar select:hover,
 .app-bg.dark-mode .pericia-tag-btn:hover {
+  background: #334155;
+}
+
+.app-bg.dark-mode .pericia-roll-btn,
+.app-bg.dark-mode .pericia-roll-btn:hover {
+  background: #1d4ed8;
+  border-color: #2563eb;
+  color: #eff6ff;
+}
+
+.app-bg.dark-mode .dice-mode-modal {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .dice-mode-modal-actions button {
+  background: #1f2937;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.app-bg.dark-mode .dice-mode-modal-actions button:hover {
   background: #334155;
 }
 
