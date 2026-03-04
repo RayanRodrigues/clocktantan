@@ -2188,7 +2188,7 @@
 
 /* Responsive */
 @media (max-width: 1500px) and (min-width: 1001px) {
-  .character-sidebar {
+  .app-layout:not(.chat-collapsed) .character-sidebar {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
