@@ -14,7 +14,7 @@ export function CharacterSidebar({
   onRemoverImagem,
 }: CharacterSidebarProps) {
   return (
-    <div className="info-section">
+    <div className="character-sidebar">
       <div className="painel personagem-foto-painel">
         <h2 className="panel-title">
           <i className="fas fa-image"></i> Retrato do Personagem

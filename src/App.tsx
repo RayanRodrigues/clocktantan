@@ -91,6 +91,9 @@ export function App() {
   const [vidaAtual, setVidaAtual] = useState(
     initialState?.vidaAtual ?? vidaMaximaInicial
   );
+  const [caModificador, setCaModificador] = useState(
+    initialState?.caModificador ?? 0
+  );
   const [vidaAjusteRapido, setVidaAjusteRapido] = useState("");
   const [personagemImagemLink, setPersonagemImagemLink] = useState("");
   const [anotacoes, setAnotacoes] = useState(initialState?.anotacoes ?? "");
@@ -146,6 +149,7 @@ export function App() {
       personagemIdade,
       personagemImagem,
       vidaAtual,
+      caModificador,
       anotacoes,
       anotacoesHorizonte,
       nivel,
@@ -164,6 +168,7 @@ export function App() {
       personagemIdade,
       personagemImagem,
       vidaAtual,
+      caModificador,
       anotacoes,
       anotacoesHorizonte,
       nivel,
@@ -184,6 +189,7 @@ export function App() {
     setPersonagemIdade(state.personagemIdade);
     setPersonagemImagem(state.personagemImagem);
     setVidaAtual(state.vidaAtual);
+    setCaModificador(state.caModificador);
     setAnotacoes(state.anotacoes);
     setAnotacoesHorizonte(state.anotacoesHorizonte);
     setNivel(state.nivel);
@@ -1064,6 +1070,20 @@ export function App() {
             <span className="vida-valor">
               {vidaAtual} / {vidaMaxima}
             </span>
+            <div className="ca-controles" role="group" aria-label="Classe de Armadura">
+              <span className="ca-label">CA</span>
+              {([-2, -1, 0, 1, 2] as const).map((valor) => (
+                <button
+                  key={`ca-${valor}`}
+                  type="button"
+                  className={`ca-opcao ${caModificador === valor ? "is-active" : ""}`}
+                  onClick={() => setCaModificador(valor)}
+                  aria-pressed={caModificador === valor}
+                >
+                  {valor > 0 ? `+${valor}` : `${valor}`}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="vida-barra">
             <div
@@ -1278,16 +1298,14 @@ export function App() {
             </div>
           </div>
 
-          <div className="info-section">
-            {/* Painel lateral: Afinidade */}
-            <CharacterSidebar
-              personagemImagem={personagemImagem}
-              personagemImagemLink={personagemImagemLink}
-              onPersonagemImagemLinkChange={setPersonagemImagemLink}
-              onUsarImagemPorLink={handleUsarImagemPorLink}
-              onRemoverImagem={() => setPersonagemImagem("")}
-            />
-          </div>
+          {/* Painel lateral: Retrato e Afinidade */}
+          <CharacterSidebar
+            personagemImagem={personagemImagem}
+            personagemImagemLink={personagemImagemLink}
+            onPersonagemImagemLinkChange={setPersonagemImagemLink}
+            onUsarImagemPorLink={handleUsarImagemPorLink}
+            onRemoverImagem={() => setPersonagemImagem("")}
+          />
         </div>
 
         {/* Painéis inferiores */}

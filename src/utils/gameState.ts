@@ -261,6 +261,7 @@ export interface PersistedState {
   personagemIdade: string;
   personagemImagem: string;
   vidaAtual: number;
+  caModificador: number;
   anotacoes: string;
   anotacoesHorizonte: string;
   nivel: number;
@@ -411,6 +412,11 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     typeof parsed.vidaAtual === "number" && Number.isFinite(parsed.vidaAtual)
       ? Math.max(0, Math.min(vidaMaxima, Math.floor(parsed.vidaAtual)))
       : vidaMaxima;
+  const caModificadorRaw =
+    typeof parsed.caModificador === "number" && Number.isFinite(parsed.caModificador)
+      ? Math.floor(parsed.caModificador)
+      : 0;
+  const caModificador = Math.max(-2, Math.min(2, caModificadorRaw));
   const anotacoes = typeof parsed.anotacoes === "string" ? parsed.anotacoes : "";
   const anotacoesHorizonte =
     typeof parsed.anotacoesHorizonte === "string" ? parsed.anotacoesHorizonte : "";
@@ -441,6 +447,7 @@ export function normalizePersistedState(parsed: Partial<PersistedState>): Persis
     personagemIdade,
     personagemImagem,
     vidaAtual,
+    caModificador,
     anotacoes,
     anotacoesHorizonte,
     nivel,
@@ -466,6 +473,7 @@ export function toCloudState(state: PersistedState): CloudState {
     personagemIdade: state.personagemIdade,
     personagemImagem: state.personagemImagem,
     vidaAtual: state.vidaAtual,
+    caModificador: state.caModificador,
     anotacoes: state.anotacoes,
     anotacoesHorizonte: state.anotacoesHorizonte,
     nivel: state.nivel,
