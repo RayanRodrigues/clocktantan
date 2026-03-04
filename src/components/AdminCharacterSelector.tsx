@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { User } from "firebase/auth";
 import type { CharacterListItem } from "../hooks/useFirebaseCharacterSync";
 
@@ -49,6 +50,10 @@ export function AdminCharacterSelector({
     : activeItem
     ? [activeItem, ...filteredCharacters]
     : filteredCharacters;
+  const renderInPortal = (content: React.ReactNode) => {
+    if (typeof document === "undefined") return content;
+    return createPortal(content, document.body);
+  };
 
   return (
     <div className="admin-selector">
@@ -115,6 +120,7 @@ export function AdminCharacterSelector({
         className="admin-selector-delete-btn"
         disabled={deleting || charactersList.length === 0}
         onClick={() => {
+          if (!activeUid) return;
           setShowDeleteModal(true);
         }}
       >
@@ -170,115 +176,127 @@ export function AdminCharacterSelector({
         )}
       </div>
 
-      {showCreateModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-card" role="dialog" aria-modal="true">
-            <h3 className="admin-modal-title">Criar nova ficha</h3>
-            <p className="admin-modal-text">Digite o nome da nova ficha.</p>
-            <input
-              type="text"
-              className="admin-modal-input"
-              value={newCharacterName}
-              onChange={(e) => setNewCharacterName(e.target.value)}
-              placeholder="Ex.: Arion"
-              maxLength={60}
-            />
-            <label className="admin-modal-type-label" htmlFor="admin-new-type">
-              Tipo da ficha
-            </label>
-            <select
-              id="admin-new-type"
-              className="admin-modal-select"
-              value={newCharacterType}
-              onChange={(e) => {
-                const next = e.target.value === "npc" ? "npc" : "player";
-                setNewCharacterType(next);
-              }}
-            >
-              <option value="player">Player</option>
-              <option value="npc">NPC</option>
-            </select>
-            <div className="admin-modal-actions">
-              <button
-                type="button"
-                className="admin-modal-cancel"
-                disabled={creating}
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="admin-modal-confirm"
-                disabled={creating}
-                onClick={async () => {
-                  const nome = newCharacterName.trim();
-                  if (!nome) {
-                    alert("Informe um nome para a ficha.");
-                    return;
-                  }
-                  setCreating(true);
-                  try {
-                    await onCreateCharacter(nome, newCharacterType);
-                    setShowCreateModal(false);
-                  } catch (err) {
-                    console.error("Erro ao criar ficha:", err);
-                    alert(
-                      "Nao foi possivel criar a ficha no Firebase. Verifique as regras do Firestore para permitir CREATE para admin."
-                    );
-                  } finally {
-                    setCreating(false);
-                  }
+      {showCreateModal &&
+        renderInPortal(
+          <div className="admin-modal-overlay">
+            <div className="admin-modal-card" role="dialog" aria-modal="true">
+              <h3 className="admin-modal-title">Criar nova ficha</h3>
+              <p className="admin-modal-text">Digite o nome da nova ficha.</p>
+              <input
+                type="text"
+                className="admin-modal-input"
+                value={newCharacterName}
+                onChange={(e) => setNewCharacterName(e.target.value)}
+                placeholder="Ex.: Arion"
+                maxLength={60}
+              />
+              <label className="admin-modal-type-label" htmlFor="admin-new-type">
+                Tipo da ficha
+              </label>
+              <select
+                id="admin-new-type"
+                className="admin-modal-select"
+                value={newCharacterType}
+                onChange={(e) => {
+                  const next = e.target.value === "npc" ? "npc" : "player";
+                  setNewCharacterType(next);
                 }}
               >
-                {creating ? "Criando..." : "Criar ficha"}
-              </button>
+                <option value="player">Player</option>
+                <option value="npc">NPC</option>
+              </select>
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-modal-cancel"
+                  disabled={creating}
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-confirm"
+                  disabled={creating}
+                  onClick={async () => {
+                    const nome = newCharacterName.trim();
+                    if (!nome) {
+                      alert("Informe um nome para a ficha.");
+                      return;
+                    }
+                    setCreating(true);
+                    try {
+                      await onCreateCharacter(nome, newCharacterType);
+                      setShowCreateModal(false);
+                    } catch (err) {
+                      console.error("Erro ao criar ficha:", err);
+                      alert(
+                        "Nao foi possivel criar a ficha no Firebase. Verifique as regras do Firestore para permitir CREATE para admin."
+                      );
+                    } finally {
+                      setCreating(false);
+                    }
+                  }}
+                >
+                  {creating ? "Criando..." : "Criar ficha"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showDeleteModal && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-card" role="dialog" aria-modal="true">
-            <h3 className="admin-modal-title">Excluir ficha</h3>
-            <p className="admin-modal-text">{activeName + " - " + activeUid}</p>
-            <p className="admin-modal-text admin-modal-warning">
-              Essa acao nao pode ser desfeita.
-            </p>
-            <div className="admin-modal-actions">
-              <button
-                type="button"
-                className="admin-modal-cancel"
-                disabled={deleting}
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="admin-modal-delete"
-                disabled={deleting}
-                onClick={async () => {
-                  if (!activeUid) return;
-                  setDeleting(true);
-                  try {
-                    await onDeleteCharacter(activeUid);
-                    setShowDeleteModal(false);
-                  } catch (err) {
-                    console.error("Erro ao excluir ficha:", err);
-                    alert("Nao foi possivel excluir a ficha no Firebase.");
-                  } finally {
-                    setDeleting(false);
-                  }
-                }}
-              >
-                {deleting ? "Excluindo..." : "Excluir ficha"}
-              </button>
+      {showDeleteModal &&
+        renderInPortal(
+          <div className="admin-modal-overlay">
+            <div className="admin-modal-card" role="dialog" aria-modal="true">
+              <h3 className="admin-modal-title">
+                <i className="fas fa-triangle-exclamation" style={{ marginRight: 8 }}></i>
+                Excluir ficha
+              </h3>
+              <p className="admin-modal-text">Você está prestes a excluir:</p>
+              <p className="admin-modal-text">
+                <strong>{activeName}</strong>
+              </p>
+              <p className="admin-modal-text" style={{ fontSize: "0.76rem", wordBreak: "break-all" }}>
+                UID: {activeUid}
+              </p>
+              <p className="admin-modal-text admin-modal-warning">
+                Essa ação não pode ser desfeita.
+              </p>
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-modal-cancel"
+                  disabled={deleting}
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="admin-modal-delete"
+                  disabled={deleting}
+                  onClick={async () => {
+                    if (!activeUid) return;
+                    setDeleting(true);
+                    try {
+                      await onDeleteCharacter(activeUid);
+                      setShowDeleteModal(false);
+                    } catch (err) {
+                      console.error("Erro ao excluir ficha:", err);
+                      alert("Nao foi possivel excluir a ficha no Firebase.");
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  {deleting ? "Excluindo..." : "Excluir ficha"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
     </div>
   );
 }
