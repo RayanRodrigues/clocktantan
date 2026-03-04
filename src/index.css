@@ -1081,6 +1081,61 @@
   margin-top: 8px;
 }
 
+.card-controls.edit-mode {
+  justify-content: center;
+}
+
+.deck-edit-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.deck-edit-controls .edit-btn {
+  flex: 0 0 auto !important;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border-width: 1px !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.deck-edit-controls .edit-btn-minus {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+
+.deck-edit-controls .edit-btn-plus {
+  background: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+}
+
+.deck-edit-controls .edit-btn-crit {
+  background: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+.deck-edit-controls .edit-btn-minus:hover:not(:disabled) {
+  background: #fecaca !important;
+}
+
+.deck-edit-controls .edit-btn-plus:hover:not(:disabled) {
+  background: #bbf7d0 !important;
+}
+
+.deck-edit-controls .edit-btn-crit:hover:not(:disabled) {
+  background: #fde68a !important;
+}
+
 .pull-count-group {
   display: inline-flex;
   gap: 4px;
@@ -2672,6 +2727,41 @@
 .app-bg.dark-mode .anotacoes-toolbar select:hover,
 .app-bg.dark-mode .pericia-tag-btn:hover {
   background: #334155;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls {
+  background: rgba(2, 6, 23, 0.6);
+  border-color: #334155;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-minus {
+  background: #3f1a1a !important;
+  border-color: #7f1d1d !important;
+  color: #fecaca !important;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-plus {
+  background: #153823 !important;
+  border-color: #166534 !important;
+  color: #bbf7d0 !important;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-crit {
+  background: #3b2a13 !important;
+  border-color: #92400e !important;
+  color: #fde68a !important;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-minus:hover:not(:disabled) {
+  background: #5a2222 !important;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-plus:hover:not(:disabled) {
+  background: #1f4d31 !important;
+}
+
+.app-bg.dark-mode .card-controls .deck-edit-controls .edit-btn-crit:hover:not(:disabled) {
+  background: #5a401b !important;
 }
 
 .app-bg.dark-mode .pericia-roll-btn,

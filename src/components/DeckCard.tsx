@@ -490,11 +490,11 @@ export function DeckCard({
         </div>
       </div>
 
-      <div className="card-controls">
+      <div className={`card-controls ${mostrarControlesEdicao ? "edit-mode" : ""}`}>
         {mostrarControlesEdicao && (
-          <>
+          <div className="deck-edit-controls" role="group" aria-label={`Editar deck de ${attr}`}>
             <button
-              className="btn-decrement"
+              className="edit-btn edit-btn-minus btn-decrement"
               onClick={(e) => {
                 e.stopPropagation();
                 onDecrement();
@@ -505,7 +505,7 @@ export function DeckCard({
               -
             </button>
             <button
-              className="btn-increment"
+              className="edit-btn edit-btn-plus btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
                 onIncrement();
@@ -516,7 +516,7 @@ export function DeckCard({
               +
             </button>
             <button
-              className="btn-increment"
+              className="edit-btn edit-btn-crit btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
                 onConverterAcertoEmCritico();
@@ -528,46 +528,50 @@ export function DeckCard({
               }
               title="Converter 1 acerto em 1 acerto crítico"
             >
-              *
+              ✦
+            </button>
+          </div>
+        )}
+        {!mostrarControlesEdicao && (
+          <>
+            <div className="pull-count-group" role="group" aria-label={`Qtd ${attr}`}>
+              {[1, 2, 3].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`pull-count-btn ${pullCount === n ? "active" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPullCount(n as 1 | 2 | 3);
+                  }}
+                  disabled={isDrawing}
+                  title={`Puxar ${n} carta(s)`}
+                >
+                  {n}x
+                </button>
+              ))}
+            </div>
+            <button
+              className="btn-puxar"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAnimatedPuxar();
+              }}
+              disabled={isDrawing || total < pullCount}
+            >
+              <i className="fas fa-hand-point-up"></i> Puxar
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReembaralhar();
+              }}
+              disabled={isDrawing}
+            >
+              <i className="fas fa-sync-alt"></i> Reemb.
             </button>
           </>
         )}
-        <div className="pull-count-group" role="group" aria-label={`Qtd ${attr}`}>
-          {[1, 2, 3].map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={`pull-count-btn ${pullCount === n ? "active" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setPullCount(n as 1 | 2 | 3);
-              }}
-              disabled={isDrawing}
-              title={`Puxar ${n} carta(s)`}
-            >
-              {n}x
-            </button>
-          ))}
-        </div>
-        <button
-          className="btn-puxar"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAnimatedPuxar();
-          }}
-          disabled={isDrawing || total < pullCount}
-        >
-          <i className="fas fa-hand-point-up"></i> Puxar
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onReembaralhar();
-          }}
-          disabled={isDrawing}
-        >
-          <i className="fas fa-sync-alt"></i> Reemb.
-        </button>
       </div>
 
       {isDrawing && drawAnim && previewCards.length > 0 && (
