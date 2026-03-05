@@ -6,6 +6,7 @@ import {
   ERROS_CRITICOS_FIXOS,
   type Card,
 } from "../utils/gameState";
+import { playSound, playResultSound } from "../utils/soundManager";
 
 type DrawPhase = "moving" | "center";
 
@@ -27,6 +28,15 @@ const ATTR_BACK_IMAGE: Record<string, string> = {
   inteligencia: "/cards/Int-Card.png",
   sabedoria: "/cards/Sab-Card.png",
   carisma: "/cards/Car-Card.png",
+};
+
+const ATTR_ICON_IMAGE: Record<string, string> = {
+  forca: "/icons/atributos/forca.svg",
+  destreza: "/icons/atributos/destreza.svg",
+  constituicao: "/icons/atributos/constituicao.svg",
+  inteligencia: "/icons/atributos/inteligencia.svg",
+  sabedoria: "/icons/atributos/sabedoria.svg",
+  carisma: "/icons/atributos/carisma.svg",
 };
 
 const RESULT_IMAGE_BY_TYPE: Record<Card["tipo"], string> = {
@@ -89,44 +99,97 @@ function getBonusContent(
   attr: string,
   bonus: Record<string, number>
 ): React.ReactNode {
+  const BonusRow = ({
+    iconName,
+    fallback,
+    children,
+  }: {
+    iconName: string;
+    fallback: string;
+    children: React.ReactNode;
+  }) => (
+    <p className="bonus-row">
+      <span className="bonus-row-icon" aria-hidden="true">
+        <img
+          src={`/icons/subatributos/${iconName}.svg`}
+          alt=""
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+            const fallbackEl = e.currentTarget.nextElementSibling as HTMLElement | null;
+            if (fallbackEl) fallbackEl.style.display = "inline-block";
+          }}
+        />
+        <span className="bonus-row-icon-fallback">{fallback}</span>
+      </span>
+      {children}
+    </p>
+  );
+
   switch (normalizeAttrKey(attr)) {
     case "forca":
       return (
         <>
-          <p>⚔️ Dano: <strong>+{bonus.dano}</strong></p>
-          <p>📦 Carga: <strong>{bonus.carga}kg</strong></p>
+          <BonusRow iconName="for-dano" fallback="⚔️">
+            Dano: <strong>+{bonus.dano}</strong>
+          </BonusRow>
+          <BonusRow iconName="for-carga" fallback="📦">
+            Carga: <strong>{bonus.carga}kg</strong>
+          </BonusRow>
         </>
       );
     case "destreza":
-      return <p>💨 Esquiva: <strong>{bonus.esquiva}%</strong></p>;
+      return (
+        <BonusRow iconName="des-esquiva" fallback="💨">
+          Esquiva: <strong>{bonus.esquiva}%</strong>
+        </BonusRow>
+      );
     case "constituicao":
-      return <p>❤️ Vida: <strong>+{bonus.vida}</strong></p>;
+      return (
+        <BonusRow iconName="con-vida" fallback="❤️">
+          Vida: <strong>+{bonus.vida}</strong>
+        </BonusRow>
+      );
     case "inteligencia":
       return (
         <>
-          <p>🔍 Investigação: <strong>{bonus.investigacao}%</strong></p>
-          <p>📈 Progresso: <strong>+{bonus.progresso}</strong></p>
+          <BonusRow iconName="int-investigacao" fallback="🔍">
+            Investigação: <strong>{bonus.investigacao}%</strong>
+          </BonusRow>
+          <BonusRow iconName="int-progresso" fallback="📈">
+            Progresso: <strong>+{bonus.progresso}</strong>
+          </BonusRow>
         </>
       );
     case "sabedoria":
       return (
         <>
-          <p>👁️ Percepção: <strong>{bonus.percepcao}%</strong></p>
-          <p>🧠 Engenh.: <strong>{bonus.engenhosidade}</strong></p>
-          <p>✨ Críticos: <strong>+{bonus.transformacoes}</strong></p>
+          <BonusRow iconName="sab-percepcao" fallback="👁️">
+            Percepção: <strong>{bonus.percepcao}%</strong>
+          </BonusRow>
+          <BonusRow iconName="sab-engenhosidade" fallback="🧠">
+            Engenh.: <strong>{bonus.engenhosidade}</strong>
+          </BonusRow>
+          <BonusRow iconName="sab-criticos" fallback="✨">
+            Críticos: <strong>+{bonus.transformacoes}</strong>
+          </BonusRow>
         </>
       );
     case "carisma":
       return (
         <>
-          <p>🎭 Astúcia: <strong>{bonus.astucia}%</strong></p>
-          <p>🔮 Afinidade: <strong>{bonus.afinidade}</strong></p>
+          <BonusRow iconName="car-astucia" fallback="🎭">
+            Astúcia: <strong>{bonus.astucia}%</strong>
+          </BonusRow>
+          <BonusRow iconName="car-afinidade" fallback="🔮">
+            Afinidade: <strong>{bonus.afinidade}</strong>
+          </BonusRow>
         </>
       );
     default:
       return null;
   }
 }
+
 function getResultInfo(card: Card): {
   icon: string;
   iconClass: string;
@@ -220,6 +283,9 @@ export function DeckCard({
   onFlipBack: () => void;
 }) {
   const theme = ATTR_THEMES[attr];
+  const iconSlug = normalizeAttrKey(attr);
+  const attrIconSrc = ATTR_ICON_IMAGE[iconSlug] || "";
+  const [attrIconFailed, setAttrIconFailed] = useState(false);
   const [pullCount, setPullCount] = useState<1 | 2 | 3>(1);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawPhase, setDrawPhase] = useState<DrawPhase>("moving");
@@ -254,6 +320,11 @@ export function DeckCard({
 
   const primaryResult = resultado[0] ?? null;
   const resultInfo = primaryResult ? getResultInfo(primaryResult) : null;
+
+  useEffect(() => {
+    setAttrIconFailed(false);
+  }, [attrIconSrc]);
+
   useEffect(() => {
     return () => {
       if (moveTimerRef.current != null) window.clearTimeout(moveTimerRef.current);
@@ -271,6 +342,7 @@ export function DeckCard({
     setDrawAnim(null);
   };
 
+  // ─── PUXAR com som ───
   const handleAnimatedPuxar = () => {
     if (isDrawing) return;
     const quantidade = Math.max(1, Math.min(3, pullCount));
@@ -281,12 +353,15 @@ export function DeckCard({
     const drawn = onPuxar(quantidade);
     if (!drawn || drawn.length === 0) return;
 
+    // 🔊 Som de puxar carta
+    playSound("card-draw");
+
     const rect = flipCardRef.current?.getBoundingClientRect();
     if (!rect) return;
 
     const qtd = drawn.length;
     const gap = 14;
-    const cardAspect = 1.52; // card height / width
+    const cardAspect = 1.52;
     const maxWidth = window.innerWidth * 0.94;
     const maxHeight = window.innerHeight * 0.74;
 
@@ -319,17 +394,31 @@ export function DeckCard({
       ty: centerTop - top,
     });
     setIsDrawing(true);
-    requestAnimationFrame(() => setDrawPhase("center"));
+    requestAnimationFrame(() => {
+      setDrawPhase("center");
+      // 🔊 Som de carta deslizando pro centro
+      playSound("card-slide");
+    });
 
     moveTimerRef.current = window.setTimeout(() => {
       setCanCenterFlip(true);
     }, 560);
   };
 
+  // ─── VIRAR CARTA DO CENTRO com som ───
   const handleCenterCardClick = () => {
     if (!isDrawing || !canCenterFlip || centerFlipped || previewCards.length === 0) return;
     setCenterFlipped(true);
     setCanCenterFlip(false);
+
+    // 🔊 Som de virar carta
+    playSound("card-flip");
+
+    // 🔊 Som do resultado (com pequeno delay pra sincronizar com a animação)
+    const currentCard = previewCards[previewIndex];
+    setTimeout(() => {
+      playResultSound(currentCard.tipo);
+    }, 300);
 
     const isLast = previewIndex >= previewCards.length - 1;
     if (isLast) {
@@ -353,11 +442,21 @@ export function DeckCard({
     <div className="card-wrapper" style={cssVars}>
       <div ref={flipCardRef} className={`flip-card ${isDrawing ? "drawing" : ""}`}>
         <div className={`flip-card-inner ${isFlipped ? "flipped" : ""}`}>
+          {/* ─── FRONT ─── */}
           <div className="flip-card-front">
             <div className="card-face">
               <div className="card-header">
                 <div className="card-header-icon">
-                  <i className={`fas ${theme.icon}`}></i>
+                  {attrIconSrc && !attrIconFailed ? (
+                    <img
+                      src={attrIconSrc}
+                      alt={`Ícone de ${attr}`}
+                      className="attr-svg-icon"
+                      onError={() => setAttrIconFailed(true)}
+                    />
+                  ) : (
+                    <i className={`fas ${theme.icon}`}></i>
+                  )}
                 </div>
                 <div className="card-header-text">
                   <h3>{attr}</h3>
@@ -400,20 +499,28 @@ export function DeckCard({
             </div>
           </div>
 
+          {/* ─── BACK ─── */}
           <div className="flip-card-back">
             <div
               className={`card-face ${resultInfo ? resultInfo.glowClass : ""}`}
               style={
                 resultInfo
-                  ? {
-                      borderColor: resultInfo.textColor,
-                    }
+                  ? { borderColor: resultInfo.textColor }
                   : undefined
               }
             >
               <div className="card-header">
                 <div className="card-header-icon">
-                  <i className={`fas ${theme.icon}`}></i>
+                  {attrIconSrc && !attrIconFailed ? (
+                    <img
+                      src={attrIconSrc}
+                      alt={`Ícone de ${attr}`}
+                      className="attr-svg-icon"
+                      onError={() => setAttrIconFailed(true)}
+                    />
+                  ) : (
+                    <i className={`fas ${theme.icon}`}></i>
+                  )}
                 </div>
                 <div className="card-header-text">
                   <h3>{attr}</h3>
@@ -423,7 +530,11 @@ export function DeckCard({
 
               <div
                 className="card-result-body"
-                onClick={onFlipBack}
+                onClick={() => {
+                  // 🔊 Som de voltar carta
+                  playSound("card-return");
+                  onFlipBack();
+                }}
                 style={{
                   background: resultInfo ? resultInfo.bgColor : theme.bgLight,
                   cursor: "pointer",
@@ -466,13 +577,7 @@ export function DeckCard({
                         })}
                       </div>
                     )}
-                    <div
-                      style={{
-                        fontSize: "0.8rem",
-                        color: "#888",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <div style={{ fontSize: "0.8rem", color: "#888", marginTop: "4px" }}>
                       Restam: {total} cartas
                     </div>
                   </>
@@ -490,6 +595,7 @@ export function DeckCard({
         </div>
       </div>
 
+      {/* ─── CONTROLES ─── */}
       <div className={`card-controls ${mostrarControlesEdicao ? "edit-mode" : ""}`}>
         {mostrarControlesEdicao && (
           <div className="deck-edit-controls" role="group" aria-label={`Editar deck de ${attr}`}>
@@ -497,6 +603,8 @@ export function DeckCard({
               className="edit-btn edit-btn-minus btn-decrement"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de remover ponto
+                playSound("point-remove");
                 onDecrement();
               }}
               disabled={isDrawing || acertosComuns <= 0}
@@ -508,6 +616,8 @@ export function DeckCard({
               className="edit-btn edit-btn-plus btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de adicionar ponto
+                playSound("point-add");
                 onIncrement();
               }}
               disabled={isDrawing || pontosDistribuir <= 0}
@@ -519,6 +629,8 @@ export function DeckCard({
               className="edit-btn edit-btn-crit btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de converter em crítico
+                playSound("convert-crit");
                 onConverterAcertoEmCritico();
               }}
               disabled={
@@ -564,6 +676,8 @@ export function DeckCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de embaralhar
+                playSound("shuffle");
                 onReembaralhar();
               }}
               disabled={isDrawing}
@@ -574,6 +688,7 @@ export function DeckCard({
         )}
       </div>
 
+      {/* ─── DRAW OVERLAY ─── */}
       {isDrawing && drawAnim && previewCards.length > 0 && (
         <div className="draw-overlay">
           <div
@@ -594,11 +709,7 @@ export function DeckCard({
           >
             <div
               className="draw-center-strip"
-              style={
-                {
-                  "--center-gap": `${drawAnim.gap}px`,
-                } as CSSProperties
-              }
+              style={{ "--center-gap": `${drawAnim.gap}px` } as CSSProperties}
             >
               {previewCards.map((card, idx) => {
                 const info = getResultInfo(card);
@@ -642,4 +753,3 @@ export function DeckCard({
     </div>
   );
 }
-
