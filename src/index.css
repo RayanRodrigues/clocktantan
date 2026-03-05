@@ -5488,3 +5488,40 @@ a:hover i {
 .nivel-info {
   margin-bottom: 18px !important;
 }
+
+/* Modo dia: fundo da ficha levemente transparente */
+.app-bg:not(.dark-mode) .tool {
+  background: rgba(234, 220, 194, 0.86);
+}
+
+/* Botao de tema no modo dia sem fundo branco */
+.app-bg:not(.dark-mode) .theme-toggle-light {
+  background: linear-gradient(180deg, rgba(8, 22, 63, 0.92), rgba(5, 16, 46, 0.94));
+  border-color: rgba(213, 181, 106, 0.5);
+  color: #f1ddb0;
+}
+
+.app-bg:not(.dark-mode) .theme-toggle-light .theme-toggle-knob {
+  background: #f1ddb0;
+  border-color: rgba(213, 181, 106, 0.8);
+  color: #1b2a4a;
+}
+
+.app-bg:not(.dark-mode) .theme-toggle-light:hover {
+  border-color: rgba(213, 181, 106, 0.75);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+/* Remove branco da bolinha do toggle (modo dark e light) */
+.theme-toggle-dark .theme-toggle-knob,
+.app-bg.dark-mode .theme-toggle-knob {
+  background: #1b2a4a !important;
+  border-color: rgba(213, 181, 106, 0.8) !important;
+  color: #f1ddb0 !important;
+}
+
+.app-bg:not(.dark-mode) .theme-toggle-light .theme-toggle-knob {
+  background: #1b2a4a !important;
+  border-color: rgba(213, 181, 106, 0.8) !important;
+  color: #f1ddb0 !important;
+}
