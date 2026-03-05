@@ -56,8 +56,8 @@ export function App() {
   const [headerIconFailed, setHeaderIconFailed] = useState(false);
   const headerIconSrc =
     themeMode === "dark"
-      ? "/icons/topbar/logo-dark.svg"
-      : "/icons/topbar/logo-light.svg";
+      ? "/icons/topbar/logo-dark.png"
+      : "/icons/topbar/logo-light.png";
 
   useEffect(() => {
     setHeaderIconFailed(false);
@@ -436,23 +436,19 @@ export function App() {
           </div>
           <div className="top-header-center">
             <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
-              <span className="app-title-with-icon">
+              <span className="app-main-logo-wrap">
                 {headerIconFailed ? (
                   <i className="fas fa-dice-d20 app-title-icon-fallback" aria-hidden="true"></i>
                 ) : (
                   <img
                     src={headerIconSrc}
                     alt=""
-                    className="app-title-icon"
+                    className="app-main-logo"
                     onError={() => setHeaderIconFailed(true)}
                   />
                 )}
-                Clock Tan-Tan · Ferramenta do Mestre
               </span>
             </h1>
-            <div className="text-center mb-6 text-slate-600 italic">
-              Gerenciamento de decks, progressão, perícias e regras
-            </div>
           </div>
           <div className="top-header-right">
             <button

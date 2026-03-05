@@ -4995,3 +4995,496 @@ a:hover i {
     align-items: start;
   }
 }
+
+/* Logo principal no topo (somente imagem) */
+.app-main-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.app-main-logo {
+  width: min(560px, 78vw);
+  height: auto;
+  max-height: 110px;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .app-main-logo {
+    width: min(440px, 84vw);
+    max-height: 88px;
+  }
+}
+
+/* Logo principal maior */
+.app-main-logo {
+  width: min(700px, 90vw);
+  max-height: 150px;
+}
+
+@media (max-width: 700px) {
+  .app-main-logo {
+    width: min(520px, 92vw);
+    max-height: 110px;
+  }
+}
+
+/* Logo principal +40% */
+.app-main-logo {
+  width: min(980px, 95vw);
+  max-height: 210px;
+}
+
+@media (max-width: 700px) {
+  .app-main-logo {
+    width: min(728px, 96vw);
+    max-height: 154px;
+  }
+}
+
+/* Logo maior, com recorte visual para PNG com area transparente */
+.app-main-logo {
+  width: min(1060px, 96vw);
+  height: 240px;
+  object-fit: cover;
+  object-position: center 62%;
+  max-height: none;
+}
+
+/* Aproxima o resto da interface da logo */
+.top-header {
+  margin-bottom: 6px;
+}
+
+.top-header-center h1 {
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: min(760px, 98vw);
+    height: 180px;
+    object-position: center 60%;
+  }
+}
+
+/* Ajuste: logo menor e recorte mais equilibrado */
+.app-main-logo {
+  width: min(760px, 88vw);
+  height: 140px;
+  object-fit: cover;
+  object-position: center 52%;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: min(560px, 90vw);
+    height: 108px;
+    object-position: center 52%;
+  }
+}
+
+/* Fix: mostrar logo inteira sem corte */
+.app-main-logo {
+  width: min(760px, 88vw);
+  height: auto;
+  max-height: 180px;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: min(560px, 90vw);
+    height: auto;
+    max-height: 130px;
+    object-fit: contain;
+    object-position: center;
+  }
+}
+
+/* Tamanho da logo no topo (mais discreto, como no print) */
+.app-main-logo {
+  width: clamp(220px, 14vw, 180px);
+  height: auto;
+  max-height: 90px;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(105px, 22vw, 150px);
+    max-height: 74px;
+  }
+}
+
+/* Logo do topo: tamanho intermediario */
+.app-main-logo {
+  width: clamp(180px, 22vw, 290px);
+  max-height: 130px;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(150px, 30vw, 240px);
+    max-height: 100px;
+  }
+}
+
+/* Logo do topo +20% */
+.app-main-logo {
+  width: clamp(216px, 26.4vw, 348px);
+  max-height: 156px;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(80px, 36vw, 388px);
+    max-height: 420px;
+  }
+}
+
+/* Logo do topo maior (ajuste forte) */
+.app-main-logo {
+  width: clamp(180px, 340vw, 360px);
+  max-height: 300px;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(220px, 46vw, 360px);
+    max-height: 150px;
+  }
+}
+
+/* Reduz espaco em volta da logo no topo */
+.top-header {
+  margin-bottom: 2px;
+}
+
+.top-header-center {
+  padding: 0;
+}
+
+.top-header-center h1 {
+  margin: 0;
+  font-size: 0;
+  line-height: 0;
+}
+
+.app-main-logo-wrap {
+  line-height: 0;
+}
+
+.app-main-logo {
+  margin: -34px 0 -30px;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    margin: -22px 0 -20px;
+  }
+}
+
+/* Ajuste final: reduzir espaco em volta da logo sem deixar layout distante */
+.top-header {
+  margin-bottom: -8px;
+}
+
+.top-header-center h1 {
+  margin: 0;
+  line-height: 0;
+}
+
+.app-main-logo {
+  width: clamp(280px, 34vw, 460px);
+  height: 118px;
+  object-fit: cover;
+  object-position: center 52%;
+}
+
+.auth-status {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .top-header {
+    margin-bottom: -4px;
+  }
+
+  .app-main-logo {
+    width: clamp(220px, 46vw, 360px);
+    height: 94px;
+    object-fit: cover;
+    object-position: center 52%;
+  }
+}
+
+/* HOTFIX logo topo: sem corte e sem espacamento exagerado */
+.top-header {
+  margin-bottom: 0 !important;
+  min-height: 84px;
+}
+
+.top-header-center {
+  padding-top: 2px;
+  padding-bottom: 0;
+}
+
+.top-header-center h1 {
+  margin: 0 !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+}
+
+.app-main-logo-wrap {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.app-main-logo {
+  display: block;
+  width: clamp(260px, 30vw, 420px) !important;
+  height: auto !important;
+  max-height: 120px !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  margin: 0 auto !important;
+}
+
+@media (max-width: 900px) {
+  .top-header {
+    min-height: 70px;
+  }
+
+  .app-main-logo {
+    width: clamp(210px, 44vw, 320px) !important;
+    max-height: 96px !important;
+  }
+}
+
+/* Logo maior sem corte (ajuste rapido) */
+.app-main-logo {
+  width: clamp(420px, 44vw, 620px) !important;
+  max-height: 170px !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(280px, 62vw, 460px) !important;
+    max-height: 130px !important;
+  }
+}
+
+/* Somente tamanho da logo (sem alterar posicao/layout) */
+.app-main-logo {
+  width: clamp(520px, 52vw, 760px) !important;
+  max-height: 220px !important;
+}
+
+@media (max-width: 900px) {
+  .app-main-logo {
+    width: clamp(320px, 70vw, 520px) !important;
+    max-height: 160px !important;
+  }
+}
+
+/* Forcar aumento da logo */
+.top-header-center .app-main-logo {
+  width: clamp(620px, 60vw, 900px) !important;
+  max-height: 260px !important;
+  height: auto !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo {
+    width: clamp(360px, 78vw, 640px) !important;
+    max-height: 180px !important;
+  }
+}
+
+/* Logo maior (forcado) */
+.top-header-center .app-main-logo {
+  width: min(980px, 72vw) !important;
+  max-height: 300px !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo {
+    width: min(700px, 92vw) !important;
+    max-height: 220px !important;
+  }
+}
+
+/* Logo GIGANTE (override final) */
+.top-header-center .app-main-logo,
+.top-header-center h1 .app-main-logo,
+.app-main-logo {
+  width: min(1200px, 86vw) !important;
+  max-width: 1200px !important;
+  max-height: 380px !important;
+  height: auto !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo,
+  .top-header-center h1 .app-main-logo,
+  .app-main-logo {
+    width: min(820px, 98vw) !important;
+    max-height: 260px !important;
+  }
+}
+
+/* FIX: PNG com muito espaco transparente -> zoom visual na marca */
+.top-header-center .app-main-logo-wrap {
+  overflow: visible;
+}
+
+.top-header-center .app-main-logo {
+  width: 260px !important;
+  max-width: none !important;
+  max-height: none !important;
+  height: auto !important;
+  transform: scale(2.8) !important;
+  transform-origin: center center !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo {
+    width: 220px !important;
+    transform: scale(2.2) !important;
+  }
+}
+
+/* Logo -15% */
+.top-header-center .app-main-logo {
+  transform: scale(0.40) !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo {
+    transform: scale(0.80) !important;
+  }
+}
+
+/* Ajuste fino: logo mais para cima e menos espaco abaixo */
+.top-header-center .app-main-logo-wrap {
+  margin-top: -14px !important;
+  margin-bottom: -28px !important;
+}
+
+.top-header {
+  margin-bottom: -10px !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo-wrap {
+    margin-top: -10px !important;
+    margin-bottom: -20px !important;
+  }
+
+  .top-header {
+    margin-bottom: -6px !important;
+  }
+}
+
+/* Compactar espacos verticais da parte superior */
+.app-bg {
+  padding-top: 10px;
+  padding-bottom: 12px;
+}
+
+.tool {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.top-header {
+  margin-bottom: -16px !important;
+}
+
+.auth-status {
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+.personagem-info {
+  margin-bottom: 8px;
+}
+
+.vida-painel {
+  margin-bottom: 6px;
+}
+
+.nivel-info {
+  margin-bottom: 10px;
+}
+
+/* Compactar espaco vazio acima/abaixo da logo */
+.top-header-center .app-main-logo-wrap {
+  margin-top: -10px !important;
+  margin-bottom: -24px !important;
+}
+
+.top-header-center .app-main-logo {
+  width: min(980px, 72vw) !important;
+  height: 150px !important;
+  object-fit: cover !important;
+  object-position: center 50% !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo-wrap {
+    margin-top: -6px !important;
+    margin-bottom: -16px !important;
+  }
+
+  .top-header-center .app-main-logo {
+    width: min(700px, 92vw) !important;
+    height: 115px !important;
+    object-fit: cover !important;
+    object-position: center 50% !important;
+  }
+}
+
+/* Sobe a logo e remove espaco acima */
+.top-header-center .app-main-logo-wrap {
+  margin-top: -46px !important;
+}
+
+.top-header {
+  padding-top: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .top-header-center .app-main-logo-wrap {
+    margin-top: -28px !important;
+  }
+}
+
+/* Mais espaco entre os blocos superiores */
+.auth-status {
+  margin-bottom: 14px !important;
+}
+
+.personagem-info {
+  margin-bottom: 16px !important;
+}
+
+.vida-painel {
+  margin-bottom: 16px !important;
+}
+
+.nivel-info {
+  margin-bottom: 18px !important;
+}
