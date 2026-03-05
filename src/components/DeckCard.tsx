@@ -6,6 +6,7 @@ import {
   ERROS_CRITICOS_FIXOS,
   type Card,
 } from "../utils/gameState";
+import { playSound, playResultSound } from "../utils/soundManager";
 
 type DrawPhase = "moving" | "center";
 
@@ -127,6 +128,7 @@ function getBonusContent(
       return null;
   }
 }
+
 function getResultInfo(card: Card): {
   icon: string;
   iconClass: string;
@@ -254,6 +256,7 @@ export function DeckCard({
 
   const primaryResult = resultado[0] ?? null;
   const resultInfo = primaryResult ? getResultInfo(primaryResult) : null;
+
   useEffect(() => {
     return () => {
       if (moveTimerRef.current != null) window.clearTimeout(moveTimerRef.current);
@@ -271,6 +274,7 @@ export function DeckCard({
     setDrawAnim(null);
   };
 
+  // ─── PUXAR com som ───
   const handleAnimatedPuxar = () => {
     if (isDrawing) return;
     const quantidade = Math.max(1, Math.min(3, pullCount));
@@ -281,12 +285,15 @@ export function DeckCard({
     const drawn = onPuxar(quantidade);
     if (!drawn || drawn.length === 0) return;
 
+    // 🔊 Som de puxar carta
+    playSound("card-draw");
+
     const rect = flipCardRef.current?.getBoundingClientRect();
     if (!rect) return;
 
     const qtd = drawn.length;
     const gap = 14;
-    const cardAspect = 1.52; // card height / width
+    const cardAspect = 1.52;
     const maxWidth = window.innerWidth * 0.94;
     const maxHeight = window.innerHeight * 0.74;
 
@@ -319,17 +326,31 @@ export function DeckCard({
       ty: centerTop - top,
     });
     setIsDrawing(true);
-    requestAnimationFrame(() => setDrawPhase("center"));
+    requestAnimationFrame(() => {
+      setDrawPhase("center");
+      // 🔊 Som de carta deslizando pro centro
+      playSound("card-slide");
+    });
 
     moveTimerRef.current = window.setTimeout(() => {
       setCanCenterFlip(true);
     }, 560);
   };
 
+  // ─── VIRAR CARTA DO CENTRO com som ───
   const handleCenterCardClick = () => {
     if (!isDrawing || !canCenterFlip || centerFlipped || previewCards.length === 0) return;
     setCenterFlipped(true);
     setCanCenterFlip(false);
+
+    // 🔊 Som de virar carta
+    playSound("card-flip");
+
+    // 🔊 Som do resultado (com pequeno delay pra sincronizar com a animação)
+    const currentCard = previewCards[previewIndex];
+    setTimeout(() => {
+      playResultSound(currentCard.tipo);
+    }, 300);
 
     const isLast = previewIndex >= previewCards.length - 1;
     if (isLast) {
@@ -353,6 +374,7 @@ export function DeckCard({
     <div className="card-wrapper" style={cssVars}>
       <div ref={flipCardRef} className={`flip-card ${isDrawing ? "drawing" : ""}`}>
         <div className={`flip-card-inner ${isFlipped ? "flipped" : ""}`}>
+          {/* ─── FRONT ─── */}
           <div className="flip-card-front">
             <div className="card-face">
               <div className="card-header">
@@ -400,14 +422,13 @@ export function DeckCard({
             </div>
           </div>
 
+          {/* ─── BACK ─── */}
           <div className="flip-card-back">
             <div
               className={`card-face ${resultInfo ? resultInfo.glowClass : ""}`}
               style={
                 resultInfo
-                  ? {
-                      borderColor: resultInfo.textColor,
-                    }
+                  ? { borderColor: resultInfo.textColor }
                   : undefined
               }
             >
@@ -423,7 +444,11 @@ export function DeckCard({
 
               <div
                 className="card-result-body"
-                onClick={onFlipBack}
+                onClick={() => {
+                  // 🔊 Som de voltar carta
+                  playSound("card-return");
+                  onFlipBack();
+                }}
                 style={{
                   background: resultInfo ? resultInfo.bgColor : theme.bgLight,
                   cursor: "pointer",
@@ -466,13 +491,7 @@ export function DeckCard({
                         })}
                       </div>
                     )}
-                    <div
-                      style={{
-                        fontSize: "0.8rem",
-                        color: "#888",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <div style={{ fontSize: "0.8rem", color: "#888", marginTop: "4px" }}>
                       Restam: {total} cartas
                     </div>
                   </>
@@ -490,6 +509,7 @@ export function DeckCard({
         </div>
       </div>
 
+      {/* ─── CONTROLES ─── */}
       <div className={`card-controls ${mostrarControlesEdicao ? "edit-mode" : ""}`}>
         {mostrarControlesEdicao && (
           <div className="deck-edit-controls" role="group" aria-label={`Editar deck de ${attr}`}>
@@ -497,6 +517,8 @@ export function DeckCard({
               className="edit-btn edit-btn-minus btn-decrement"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de remover ponto
+                playSound("point-remove");
                 onDecrement();
               }}
               disabled={isDrawing || acertosComuns <= 0}
@@ -508,6 +530,8 @@ export function DeckCard({
               className="edit-btn edit-btn-plus btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de adicionar ponto
+                playSound("point-add");
                 onIncrement();
               }}
               disabled={isDrawing || pontosDistribuir <= 0}
@@ -519,6 +543,8 @@ export function DeckCard({
               className="edit-btn edit-btn-crit btn-increment"
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de converter em crítico
+                playSound("convert-crit");
                 onConverterAcertoEmCritico();
               }}
               disabled={
@@ -564,6 +590,8 @@ export function DeckCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                // 🔊 Som de embaralhar
+                playSound("shuffle");
                 onReembaralhar();
               }}
               disabled={isDrawing}
@@ -574,6 +602,7 @@ export function DeckCard({
         )}
       </div>
 
+      {/* ─── DRAW OVERLAY ─── */}
       {isDrawing && drawAnim && previewCards.length > 0 && (
         <div className="draw-overlay">
           <div
@@ -594,11 +623,7 @@ export function DeckCard({
           >
             <div
               className="draw-center-strip"
-              style={
-                {
-                  "--center-gap": `${drawAnim.gap}px`,
-                } as CSSProperties
-              }
+              style={{ "--center-gap": `${drawAnim.gap}px` } as CSSProperties}
             >
               {previewCards.map((card, idx) => {
                 const info = getResultInfo(card);

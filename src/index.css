@@ -1,8 +1,9 @@
 ﻿@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
 
 * {
   box-sizing: border-box;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'Cinzel', 'MedievalSharp', serif; /* medieval */
 }
 
 .app-bg {
@@ -33,14 +34,30 @@
   max-width: 1400px;
 }
 
-.tool {
-  flex: 1;
-  min-width: 0;
-  max-width: 1400px;
-  background: rgba(240, 240, 240, 0.92);
+.tool{
+  /* base “papel velho” */
+  background: #eadcc2;
+
+  /* só 2 camadas: bordas levemente escurecidas + fibras sutis */
+  background-image:
+    radial-gradient(120% 90% at 50% 40%,
+      rgba(255,255,255,.35) 0%,
+      rgba(0,0,0,0) 60%,
+      rgba(90,55,20,.22) 100%),
+    repeating-linear-gradient(90deg,
+      rgba(80,55,25,.035) 0px,
+      rgba(80,55,25,.035) 1px,
+      transparent 1px,
+      transparent 7px);
+
+  background-blend-mode: multiply, overlay;
+
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  /* sombra leve pra dar profundidade */
+  box-shadow: inset 0 1px 6px rgba(255,250,230,.45),
+              inset 0 -2px 10px rgba(90,55,20,.15);
 }
 
 .chat-outside {
@@ -2842,3 +2859,1660 @@
 }
 
 
+/* ========== LINHAS DOURADAS ========== */
+
+/* Bordas dos painéis principais */
+.painel,
+.tool,
+.card-face,
+.session-chat-feed,
+.pericia-item,
+.criticos-fontes-panel,
+.subida-nivel-escolha,
+.vida-painel,
+.nivel-info,
+.personagem-foto-box,
+.personagem-campo input,
+.personagem-foto-link input,
+.horizonte-anotacoes,
+.anotacoes-editor {
+  border-color: #c9a84c !important;
+}
+
+/* Bordas dos painéis em foco */
+.personagem-campo input:focus,
+.personagem-foto-link input:focus,
+.horizonte-anotacoes:focus,
+.anotacoes-editor:focus {
+  border-color: #e8c84a !important;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.25) !important;
+}
+
+/* Bordas da tabela */
+.panel-table td,
+.panel-table th {
+  border-color: #c9a84c !important;
+}
+
+.panel-table th {
+  border-bottom: 2px solid #b8952e !important;
+}
+
+/* Título do painel - linha inferior */
+.panel-title {
+  border-bottom-color: #c9a84c !important;
+}
+
+/* Cards de atributo */
+.card-face {
+  border-color: #c9a84c !important;
+}
+
+.card-face::before {
+  border-color: rgba(201, 168, 76, 0.25) !important;
+}
+
+/* Controles dos cards */
+.card-controls button {
+  border-color: #c9a84c !important;
+}
+
+.deck-edit-controls {
+  border-color: rgba(201, 168, 76, 0.5) !important;
+}
+
+/* Chat */
+.session-chat-msg {
+  border-color: #c9a84c !important;
+}
+
+.session-chat-msg.is-roll {
+  border-color: #e8c84a !important;
+}
+
+.session-chat-compose input {
+  border-color: #c9a84c !important;
+}
+
+.session-chat-compose button {
+  border-color: #b8952e !important;
+}
+
+/* Perícias */
+.pericia-tag-btn {
+  border-color: #c9a84c !important;
+}
+
+.pericia-item {
+  border-color: #c9a84c !important;
+  border-style: dotted;
+}
+
+/* Barra de vida */
+.vida-barra {
+  border-color: #c9a84c !important;
+}
+
+/* Nível info */
+.nivel-info {
+  border-color: #c9a84c !important;
+}
+
+/* Admin selector */
+.admin-selector-select {
+  border-color: #c9a84c !important;
+}
+
+.admin-selector-item {
+  border-color: #c9a84c !important;
+}
+
+/* Footer */
+.app-footer {
+  border-top-color: #c9a84c !important;
+}
+
+/* Toolbar anotações */
+.anotacoes-toolbar button,
+.anotacoes-toolbar select {
+  border-color: #c9a84c !important;
+}
+
+/* Pull count */
+.pull-count-btn {
+  border-color: #c9a84c !important;
+}
+
+/* Theme toggle */
+.theme-toggle {
+  border-color: rgba(201, 168, 76, 0.5) !important;
+}
+
+/* Card stats */
+.card-stats {
+  border-color: rgba(201, 168, 76, 0.3) !important;
+}
+
+/* Card bonus barra lateral */
+.card-bonus {
+  border-left-color: #c9a84c !important;
+}
+
+/* Foto do personagem */
+.personagem-foto-btn {
+  border-color: #c9a84c !important;
+}
+
+/* Críticos fontes */
+.critico-fonte-item {
+  border-color: #c9a84c !important;
+}
+
+.critico-fonte-item button {
+  border-color: #c9a84c !important;
+}
+
+/* Modal admin */
+.admin-modal-card {
+  border-color: #c9a84c !important;
+}
+
+.admin-modal-input,
+.admin-modal-select {
+  border-color: #c9a84c !important;
+}
+
+/* ========== DARK MODE - LINHAS DOURADAS ========== */
+.app-bg.dark-mode .painel,
+.app-bg.dark-mode .card-face,
+.app-bg.dark-mode .session-chat-feed,
+.app-bg.dark-mode .pericia-item,
+.app-bg.dark-mode .criticos-fontes-panel,
+.app-bg.dark-mode .card-stats,
+.app-bg.dark-mode .panel-table td,
+.app-bg.dark-mode .panel-table th,
+.app-bg.dark-mode .panel-title,
+.app-bg.dark-mode .session-chat-msg,
+.app-bg.dark-mode .session-chat-compose input,
+.app-bg.dark-mode .personagem-campo input,
+.app-bg.dark-mode .personagem-foto-link input,
+.app-bg.dark-mode .anotacoes-editor,
+.app-bg.dark-mode .horizonte-anotacoes,
+.app-bg.dark-mode .app-footer,
+.app-bg.dark-mode .admin-modal-card,
+.app-bg.dark-mode .admin-modal-input,
+.app-bg.dark-mode .admin-modal-select,
+.app-bg.dark-mode .admin-selector-item,
+.app-bg.dark-mode .anotacoes-toolbar button,
+.app-bg.dark-mode .anotacoes-toolbar select,
+.app-bg.dark-mode .card-controls button,
+.app-bg.dark-mode .pericia-tag-btn,
+.app-bg.dark-mode .pull-count-btn,
+.app-bg.dark-mode .critico-fonte-item,
+.app-bg.dark-mode .critico-fonte-item button,
+.app-bg.dark-mode .deck-edit-controls,
+.app-bg.dark-mode .subida-nivel-escolha,
+.app-bg.dark-mode .pericias-lembrete {
+  border-color: #b8952e !important;
+}
+
+.app-bg.dark-mode .personagem-campo input:focus,
+.app-bg.dark-mode .personagem-foto-link input:focus,
+.app-bg.dark-mode .horizonte-anotacoes:focus,
+.app-bg.dark-mode .anotacoes-editor:focus {
+  border-color: #e8c84a !important;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.2) !important;
+}
+
+.app-bg.dark-mode .session-chat-msg.is-roll {
+  border-color: #e8c84a !important;
+}
+
+.app-bg.dark-mode .vida-painel {
+  border-color: #b8952e !important;
+}
+
+.app-bg.dark-mode .vida-barra {
+  border-color: #b8952e !important;
+}
+
+.app-bg.dark-mode .nivel-info {
+  border-color: #b8952e !important;
+}
+
+/* ========== ÍCONES DOURADOS MINIMALISTAS ========== */
+
+/* Todos os ícones Font Awesome / emoji / ícones inline */
+i,
+.fa,
+.fas,
+.far,
+.fab,
+.fa-solid,
+.fa-regular,
+.fa-brands,
+[class^="fa-"],
+[class*=" fa-"],
+.icon,
+.emoji {
+  color: #c9a84c !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+/* Ícone do header do card */
+.card-header-icon {
+  color: #c9a84c !important;
+  background: rgba(201, 168, 76, 0.15) !important;
+  border-color: rgba(201, 168, 76, 0.4) !important;
+  font-size: 1.1rem !important;
+  font-weight: 400 !important;
+}
+
+/* Ícone de resultado (acerto/erro) */
+.result-icon {
+  color: #c9a84c !important;
+  filter: drop-shadow(0 2px 6px rgba(201, 168, 76, 0.3)) !important;
+  font-style: normal !important;
+}
+
+/* Ícones dentro de botões */
+button i,
+button .fa,
+button [class^="fa-"],
+.btn-puxar i,
+.card-controls button i,
+.personagem-foto-btn i,
+.session-chat-compose button i,
+.admin-selector-create-btn i,
+.admin-selector-delete-btn i,
+.admin-selector-type-btn i,
+.session-chat-clear-btn i,
+.session-chat-toggle-btn i,
+.chat-dock-btn i,
+.anotacoes-toolbar button i,
+.vida-acoes button i,
+.pericia-roll-btn i,
+.pericia-tag-btn i,
+.subida-nivel-opcao i,
+.subida-nivel-cancelar i,
+.dice-mode-modal-actions button i,
+.theme-toggle i,
+.modo-edicao-toggle i,
+.critico-toggle i,
+.admin-modal-cancel i,
+.admin-modal-confirm i,
+.admin-modal-delete i {
+  color: #c9a84c !important;
+}
+
+/* Ícones dentro do knob do theme toggle */
+.theme-toggle-knob {
+  color: #c9a84c !important;
+}
+
+/* Ícones do painel de título */
+.panel-title i,
+.panel-title .fa,
+.panel-title [class^="fa-"] {
+  color: #c9a84c !important;
+}
+
+/* Ícones no chat */
+.session-chat-msg i,
+.session-chat-msg-text i,
+.session-chat-system i {
+  color: #c9a84c !important;
+}
+
+/* Ícones no nível info */
+.nivel-info i,
+.nivel-info span i {
+  color: #c9a84c !important;
+}
+
+/* Hint icons */
+.result-hint i,
+.card-puxar-hint i,
+.center-hint i,
+.card-back-click-hint i {
+  color: #c9a84c !important;
+}
+
+/* Ícones no dice overlay */
+.dice-overlay-header i,
+.dice-overlay-status i,
+.dice-mode-modal h3 i {
+  color: #c9a84c !important;
+}
+
+/* Emojis usados como ícones — uniformizar */
+.card-header-icon,
+.result-icon {
+  font-family: 'Segoe UI', Arial, sans-serif !important;
+}
+
+/* Ícones no card back */
+.card-back-inner i,
+.card-back-title i,
+.card-back-subtitle i {
+  color: #c9a84c !important;
+}
+
+/* Ícones nas badges de perícia */
+.badge i,
+.contador i {
+  color: inherit !important;
+}
+
+/* Ícones SVG inline (se houver) */
+svg,
+svg path,
+svg circle,
+svg rect,
+svg polygon {
+  fill: #c9a84c !important;
+  stroke: #c9a84c !important;
+}
+
+/* Exceção: SVGs decorativos que não devem mudar */
+.vida-barra-preenchimento svg,
+.dice-overlay-canvas svg {
+  fill: initial !important;
+  stroke: initial !important;
+}
+
+/* ========== HOVER — brilho dourado sutil ========== */
+button:hover i,
+button:hover .fa,
+button:hover [class^="fa-"],
+a:hover i {
+  color: #e8c84a !important;
+}
+
+.card-header-icon:hover {
+  color: #e8c84a !important;
+}
+
+/* ========== DARK MODE — ÍCONES DOURADOS ========== */
+.app-bg.dark-mode i,
+.app-bg.dark-mode .fa,
+.app-bg.dark-mode .fas,
+.app-bg.dark-mode .far,
+.app-bg.dark-mode .fab,
+.app-bg.dark-mode .fa-solid,
+.app-bg.dark-mode .fa-regular,
+.app-bg.dark-mode .fa-brands,
+.app-bg.dark-mode [class^="fa-"],
+.app-bg.dark-mode [class*=" fa-"],
+.app-bg.dark-mode .icon,
+.app-bg.dark-mode .emoji {
+  color: #d4af37 !important;
+}
+
+.app-bg.dark-mode .card-header-icon {
+  color: #d4af37 !important;
+  background: rgba(212, 175, 55, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.35) !important;
+}
+
+.app-bg.dark-mode .result-icon {
+  color: #d4af37 !important;
+  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.35)) !important;
+}
+
+.app-bg.dark-mode .theme-toggle-knob {
+  color: #d4af37 !important;
+}
+
+.app-bg.dark-mode svg,
+.app-bg.dark-mode svg path,
+.app-bg.dark-mode svg circle,
+.app-bg.dark-mode svg rect,
+.app-bg.dark-mode svg polygon {
+  fill: #d4af37 !important;
+  stroke: #d4af37 !important;
+}
+
+.app-bg.dark-mode .vida-barra-preenchimento svg,
+.app-bg.dark-mode .dice-overlay-canvas svg {
+  fill: initial !important;
+  stroke: initial !important;
+}
+
+.app-bg.dark-mode button:hover i,
+.app-bg.dark-mode button:hover .fa,
+.app-bg.dark-mode button:hover [class^="fa-"],
+.app-bg.dark-mode a:hover i {
+  color: #f0d060 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TEMA MEDIEVAL EGÍPCIO DOURADO - Card System
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cinzel+Decorative:wght@400;700;900&display=swap');
+
+/* ─── Variáveis Globais ─── */
+:root {
+  --gold-light: #f5d77a;
+  --gold: #d4a843;
+  --gold-deep: #b8860b;
+  --gold-dark: #8b6914;
+  --gold-darkest: #5c4a1e;
+  --gold-glow: rgba(212, 168, 67, 0.5);
+  --gold-shimmer: linear-gradient(
+    135deg,
+    #f5d77a 0%,
+    #d4a843 20%,
+    #f5e6a3 40%,
+    #b8860b 60%,
+    #d4a843 80%,
+    #f5d77a 100%
+  );
+  --papyrus-light: #f5eed6;
+  --papyrus: #e8dcc8;
+  --papyrus-dark: #d4c5a0;
+  --papyrus-darker: #bfaa7a;
+  --obsidian: #1a1410;
+  --obsidian-light: #2a2218;
+  --tomb-dark: #0f0c08;
+  --hieroglyph-gold: rgba(212, 168, 67, 0.12);
+  --scarab-green: #2d5a3d;
+  --lapis-blue: #1e3a5f;
+  --ruby-red: #8b1a1a;
+  --amethyst: #5c2d82;
+}
+
+/* ─── Hieroglyphic Pattern Background ─── */
+.card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 28px,
+      rgba(212, 168, 67, 0.06) 28px,
+      rgba(212, 168, 67, 0.06) 29px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 28px,
+      rgba(212, 168, 67, 0.04) 28px,
+      rgba(212, 168, 67, 0.04) 29px
+    );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 18px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FLIP CARD CONTAINER
+   ═══════════════════════════════════════════════════════════════ */
+.flip-card {
+  width: 260px;
+  height: 380px;
+  perspective: 1200px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 4px 16px rgba(212, 168, 67, 0.18));
+  transition: filter 0.3s ease;
+}
+
+.flip-card:hover {
+  filter: drop-shadow(0 8px 28px rgba(212, 168, 67, 0.35));
+}
+
+.flip-card.drawing {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ★ CORREÇÃO PRINCIPAL ★
+   backface-visibility: hidden SÓ esconde visualmente.
+   Sem estas regras, a face invisível continua capturando
+   os cliques e bloqueia o onClick={onFlipBack}.
+   ═══════════════════════════════════════════════════════════════ */
+.flip-card-inner.flipped .flip-card-front {
+  pointer-events: none;
+}
+
+.flip-card-inner:not(.flipped) .flip-card-back {
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD FACE — Medieval Egyptian Frame
+   ═══════════════════════════════════════════════════════════════ */
+.card-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--obsidian);
+  border: 2px solid var(--gold-deep);
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(245, 215, 122, 0.15);
+}
+
+/* ─── Outer ornamental border (Egyptian style) ─── */
+.card-face::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 13px;
+  border: 1.5px solid var(--gold);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow:
+    inset 0 0 8px rgba(212, 168, 67, 0.08);
+}
+
+/* ─── Inner decorative frame with Egyptian motif ─── */
+.card-face::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 168, 67, 0.25);
+  pointer-events: none;
+  z-index: 5;
+  background:
+    radial-gradient(circle at 0% 0%, var(--gold-deep) 2px, transparent 2px),
+    radial-gradient(circle at 0% 0%, rgba(212, 168, 67, 0.2) 6px, transparent 6px),
+    radial-gradient(circle at 100% 0%, var(--gold-deep) 2px, transparent 2px),
+    radial-gradient(circle at 100% 0%, rgba(212, 168, 67, 0.2) 6px, transparent 6px),
+    radial-gradient(circle at 0% 100%, var(--gold-deep) 2px, transparent 2px),
+    radial-gradient(circle at 0% 100%, rgba(212, 168, 67, 0.2) 6px, transparent 6px),
+    radial-gradient(circle at 100% 100%, var(--gold-deep) 2px, transparent 2px),
+    radial-gradient(circle at 100% 100%, rgba(212, 168, 67, 0.2) 6px, transparent 6px);
+}
+
+/* ─── Background texture (papyrus / stone) ─── */
+.card-face .card-body,
+.card-face .card-result-body {
+  position: relative;
+}
+
+.card-face .card-body::before,
+.card-face .card-result-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15 Z' fill='%23d4a843' opacity='0.5'/%3E%3Cpath d='M10 30 L15 25 L20 30 L15 35 Z' fill='%23d4a843' opacity='0.3'/%3E%3Cpath d='M45 35 L50 30 L55 35 L50 40 Z' fill='%23d4a843' opacity='0.3'/%3E%3Ccircle cx='30' cy='45' r='2' fill='%23d4a843' opacity='0.4'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD HEADER — Pharaoh's Crown Bar
+   ═══════════════════════════════════════════════════════════════ */
+.card-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.2) 0%,
+      rgba(184, 134, 11, 0.12) 60%,
+      rgba(139, 105, 20, 0.06) 100%
+    );
+  z-index: 2;
+}
+
+.card-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--gold-dark) 8%,
+      var(--gold) 20%,
+      var(--gold-light) 50%,
+      var(--gold) 80%,
+      var(--gold-dark) 92%,
+      transparent 100%
+    );
+  box-shadow: 0 1px 4px rgba(212, 168, 67, 0.3);
+}
+
+.card-header::before {
+  content: '◆';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: var(--gold);
+  z-index: 6;
+  text-shadow: 0 0 6px var(--gold-glow);
+  line-height: 1;
+}
+
+.card-header-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 35% 35%,
+      rgba(245, 230, 163, 0.25),
+      rgba(184, 134, 11, 0.15)
+    );
+  border: 1.5px solid var(--gold);
+  box-shadow:
+    0 0 12px rgba(212, 168, 67, 0.2),
+    inset 0 1px 0 rgba(245, 215, 122, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  font-size: 1.15rem;
+  color: var(--gold-light);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.card-header-icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 168, 67, 0.15);
+}
+
+.card-header-text h3 {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin: 0;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(212, 168, 67, 0.15);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: var(--papyrus-darker);
+  margin: 2px 0 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD BODY — Tomb Interior
+   ═══════════════════════════════════════════════════════════════ */
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 8px;
+  background:
+    radial-gradient(
+      ellipse at 50% 20%,
+      rgba(212, 168, 67, 0.04) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(26, 20, 16, 0.95) 0%,
+      rgba(15, 12, 8, 0.98) 100%
+    );
+  z-index: 1;
+}
+
+/* ─── Stats Row ─── */
+.card-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 6px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(212, 168, 67, 0.06) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(212, 168, 67, 0.06) 100%
+    );
+  border-radius: 8px;
+  border: 1px solid rgba(212, 168, 67, 0.15);
+  position: relative;
+}
+
+.card-stats::before,
+.card-stats::after {
+  content: '⟐';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6px;
+  color: rgba(212, 168, 67, 0.4);
+}
+.card-stats::before { left: -1px; }
+.card-stats::after { right: -1px; }
+
+.card-stats span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 168, 67, 0.08);
+}
+
+/* ─── Bonus Section ─── */
+.card-bonus {
+  position: relative;
+  padding: 10px 12px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.08) 0%,
+      rgba(212, 168, 67, 0.03) 100%
+    );
+  border-radius: 8px;
+  border: 1px solid rgba(212, 168, 67, 0.18);
+  z-index: 1;
+}
+
+.card-bonus::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--gold-deep),
+    var(--gold),
+    var(--gold-deep),
+    transparent
+  );
+  border-radius: 1px;
+}
+.card-bonus::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--gold-deep),
+    var(--gold),
+    var(--gold-deep),
+    transparent
+  );
+  border-radius: 1px;
+}
+
+.card-bonus p {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  margin: 3px 0;
+  color: var(--papyrus);
+  letter-spacing: 0.02em;
+}
+
+.card-bonus strong {
+  color: var(--gold-light);
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(212, 168, 67, 0.2);
+}
+
+/* ─── Deck count ─── */
+.card-deck-count {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  text-align: center;
+  color: rgba(212, 168, 67, 0.4);
+  letter-spacing: 0.08em;
+  padding: 4px 0;
+  border-top: 1px solid rgba(212, 168, 67, 0.08);
+  margin-top: 4px;
+}
+
+/* ─── Pull hint ─── */
+.card-puxar-hint {
+  font-family: 'Cinzel', serif;
+  color: rgba(212, 168, 67, 0.45) !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.06em;
+}
+.card-puxar-hint i {
+  color: rgba(212, 168, 67, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD RESULT BODY (Back Face)
+   ═══════════════════════════════════════════════════════════════ */
+.card-result-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 8px;
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      rgba(212, 168, 67, 0.06) 0%,
+      transparent 60%
+    ),
+    var(--obsidian) !important;
+  z-index: 1;
+  /* Garantir que é clicável */
+  cursor: pointer;
+  position: relative;
+}
+
+.result-image-card {
+  max-width: 120px;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 2px solid var(--gold-deep);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(212, 168, 67, 0.15);
+  /* Não bloquear clique no pai */
+  pointer-events: none;
+}
+
+.result-image-small {
+  max-width: 70px;
+  max-height: 100px;
+}
+
+.result-image-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.result-text {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.draw-results-inline {
+  display: flex;
+  gap: 8px;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.result-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: rgba(212, 168, 67, 0.35);
+  margin-top: 8px;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+.result-hint i {
+  margin-right: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOW EFFECTS
+   ═══════════════════════════════════════════════════════════════ */
+.glow-acerto {
+  box-shadow:
+    inset 0 0 30px rgba(22, 163, 106, 0.15),
+    0 0 20px rgba(22, 163, 106, 0.1);
+}
+.glow-acerto::before {
+  border-color: rgba(22, 163, 106, 0.4) !important;
+}
+
+.glow-acerto-critico {
+  box-shadow:
+    inset 0 0 40px rgba(245, 215, 122, 0.15),
+    0 0 30px rgba(212, 168, 67, 0.2);
+  animation: pharaoh-pulse 2s ease-in-out infinite;
+}
+.glow-acerto-critico::before {
+  border-color: var(--gold) !important;
+}
+
+.glow-erro {
+  box-shadow:
+    inset 0 0 30px rgba(220, 38, 38, 0.12),
+    0 0 20px rgba(220, 38, 38, 0.08);
+}
+.glow-erro::before {
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+.glow-erro-critico {
+  box-shadow:
+    inset 0 0 40px rgba(127, 29, 29, 0.2),
+    0 0 25px rgba(127, 29, 29, 0.15);
+  animation: doom-pulse 1.5s ease-in-out infinite;
+}
+.glow-erro-critico::before {
+  border-color: rgba(127, 29, 29, 0.5) !important;
+}
+
+@keyframes pharaoh-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 40px rgba(245, 215, 122, 0.15),
+      0 0 30px rgba(212, 168, 67, 0.2);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 50px rgba(245, 215, 122, 0.25),
+      0 0 45px rgba(212, 168, 67, 0.35);
+  }
+}
+
+@keyframes doom-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 40px rgba(127, 29, 29, 0.2),
+      0 0 25px rgba(127, 29, 29, 0.15);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 55px rgba(127, 29, 29, 0.3),
+      0 0 35px rgba(127, 29, 29, 0.25);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTROLS
+   ═══════════════════════════════════════════════════════════════ */
+.card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  z-index: 2;
+  flex-wrap: wrap;
+  max-width: 260px;
+}
+
+.card-controls button {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--gold-dark);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.15) 0%,
+      rgba(139, 105, 20, 0.1) 100%
+    );
+  color: var(--gold-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.card-controls button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 215, 122, 0.1),
+    transparent
+  );
+  transition: left 0.4s ease;
+}
+.card-controls button:hover::before {
+  left: 100%;
+}
+
+.card-controls button:hover:not(:disabled) {
+  border-color: var(--gold);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.25) 0%,
+      rgba(139, 105, 20, 0.18) 100%
+    );
+  box-shadow: 0 0 12px rgba(212, 168, 67, 0.2);
+  color: #fff;
+}
+
+.card-controls button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.card-controls button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgba(212, 168, 67, 0.15);
+}
+
+/* ─── Puxar Button ─── */
+.btn-puxar {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.3) 0%,
+      rgba(184, 134, 11, 0.2) 50%,
+      rgba(139, 105, 20, 0.25) 100%
+    ) !important;
+  border: 1.5px solid var(--gold) !important;
+  padding: 7px 16px !important;
+  box-shadow:
+    0 2px 8px rgba(212, 168, 67, 0.15),
+    inset 0 1px 0 rgba(245, 215, 122, 0.2);
+}
+.btn-puxar:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(245, 215, 122, 0.35) 0%,
+      rgba(212, 168, 67, 0.3) 50%,
+      rgba(184, 134, 11, 0.35) 100%
+    ) !important;
+  box-shadow:
+    0 4px 16px rgba(212, 168, 67, 0.3),
+    inset 0 1px 0 rgba(245, 215, 122, 0.3) !important;
+}
+.btn-puxar i {
+  margin-right: 4px;
+}
+
+/* ─── Pull Count Toggle ─── */
+.pull-count-group {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--gold-dark);
+}
+
+.pull-count-btn {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 5px 10px !important;
+  font-size: 0.68rem !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: var(--papyrus-darker) !important;
+  border-right: 1px solid rgba(212, 168, 67, 0.15) !important;
+}
+.pull-count-btn:last-child {
+  border-right: none !important;
+}
+.pull-count-btn.active {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.3),
+      rgba(139, 105, 20, 0.2)
+    ) !important;
+  color: var(--gold-light) !important;
+  text-shadow: 0 0 6px var(--gold-glow);
+}
+
+/* ─── Edit Mode ─── */
+.deck-edit-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.edit-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.edit-btn-minus {
+  border-color: var(--ruby-red) !important;
+  color: #ef4444 !important;
+}
+.edit-btn-plus {
+  border-color: var(--scarab-green) !important;
+  color: #22c55e !important;
+}
+.edit-btn-crit {
+  border-color: var(--gold) !important;
+  color: var(--gold-light) !important;
+  font-size: 1.1rem !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DRAW OVERLAY
+   ═══════════════════════════════════════════════════════════════ */
+.draw-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 8, 5, 0.85);
+  backdrop-filter: blur(6px);
+}
+
+.draw-center-card {
+  position: fixed;
+  z-index: 10000;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate(0, 0);
+}
+.draw-center-card.at-center {
+  transform: translate(var(--draw-tx), var(--draw-ty));
+}
+.draw-center-card.can-flip {
+  cursor: pointer;
+}
+
+.draw-center-strip {
+  display: flex;
+  gap: var(--center-gap, 14px);
+  width: 100%;
+  height: 100%;
+}
+
+.draw-center-slot {
+  perspective: 1000px;
+  flex-shrink: 0;
+}
+
+.draw-center-slot-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.draw-center-slot.revealed .draw-center-slot-inner {
+  transform: rotateY(180deg);
+}
+
+.draw-center-slot-front,
+.draw-center-slot-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.draw-center-slot-back {
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--obsidian);
+  border: 2px solid var(--gold-deep);
+}
+
+.center-result-image {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+/* ─── Card Back Frame ─── */
+.card-back-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 2px solid var(--gold-deep);
+  background:
+    radial-gradient(
+      ellipse at 50% 30%,
+      rgba(212, 168, 67, 0.1) 0%,
+      var(--obsidian) 70%
+    );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back-frame::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(212, 168, 67, 0.2);
+  border-radius: 8px;
+}
+.card-back-frame::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(212, 168, 67, 0.1);
+  border-radius: 6px;
+}
+
+.card-back-inner {
+  width: 70%;
+  height: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.card-back-inner.has-image {
+  width: 100%;
+  height: 100%;
+  background-image: var(--card-back-image);
+  background-size: 75%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+.card-back-overlay-text {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gold-light);
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.card-back-progress {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 168, 67, 0.2);
+}
+
+.draw-center-slot.active-next .card-back-frame {
+  animation: next-card-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes next-card-glow {
+  0%, 100% {
+    border-color: var(--gold-deep);
+    box-shadow: 0 0 8px rgba(212, 168, 67, 0.1);
+  }
+  50% {
+    border-color: var(--gold-light);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.35);
+  }
+}
+
+.center-hint {
+  position: absolute;
+  bottom: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--gold);
+  white-space: nowrap;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  animation: hint-fade 1.5s ease-in-out infinite;
+}
+
+@keyframes hint-fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.card-back-click-hint {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DECORATIVE ELEMENTS
+   ═══════════════════════════════════════════════════════════════ */
+.card-body::after {
+  content: '☥';
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 1.8rem;
+  color: rgba(212, 168, 67, 0.05);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card-result-body::after {
+  content: '𓆣';
+  position: absolute;
+  bottom: 40px;
+  right: 14px;
+  font-size: 1.5rem;
+  color: rgba(212, 168, 67, 0.06);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HOVER SHIMMER
+   ═══════════════════════════════════════════════════════════════ */
+.flip-card:hover .card-face::before {
+  border-color: var(--gold-light);
+  box-shadow:
+    inset 0 0 12px rgba(212, 168, 67, 0.12);
+  transition: all 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .flip-card {
+    width: 220px;
+    height: 330px;
+  }
+  .card-header-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  .card-header-text h3 {
+    font-size: 0.92rem;
+  }
+  .card-bonus p {
+    font-size: 0.72rem;
+  }
+  .card-controls {
+    max-width: 220px;
+  }
+}
+
+@media (min-width: 768px) {
+  .flip-card {
+    width: 280px;
+    height: 410px;
+  }
+}
+/* ===== Keep card visuals identical in dark mode ===== */
+.app-bg.dark-mode .card-body {
+  background:
+    radial-gradient(
+      ellipse at 50% 20%,
+      rgba(212, 168, 67, 0.04) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(26, 20, 16, 0.95) 0%,
+      rgba(15, 12, 8, 0.98) 100%
+    ) !important;
+}
+
+.app-bg.dark-mode .card-bonus {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.08) 0%,
+      rgba(212, 168, 67, 0.03) 100%
+    ) !important;
+  border: 1px solid rgba(212, 168, 67, 0.18) !important;
+}
+
+.app-bg.dark-mode .card-result-body {
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      rgba(212, 168, 67, 0.06) 0%,
+      transparent 60%
+    ),
+    var(--obsidian) !important;
+}
+
+.app-bg.dark-mode .card-stats {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(212, 168, 67, 0.06) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(212, 168, 67, 0.06) 100%
+    ) !important;
+  border: 1px solid rgba(212, 168, 67, 0.15) !important;
+}
+
+.app-bg.dark-mode .card-stats span {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(212, 168, 67, 0.08) !important;
+}
+
+.app-bg.dark-mode .card-controls button {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.15) 0%,
+      rgba(139, 105, 20, 0.1) 100%
+    ) !important;
+  border: 1px solid var(--gold-dark) !important;
+  color: var(--gold-light) !important;
+}
+
+.app-bg.dark-mode .card-controls button:hover:not(:disabled) {
+  border-color: var(--gold) !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.25) 0%,
+      rgba(139, 105, 20, 0.18) 100%
+    ) !important;
+  color: #fff !important;
+}
+
+.app-bg.dark-mode .btn-puxar {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.3) 0%,
+      rgba(184, 134, 11, 0.2) 50%,
+      rgba(139, 105, 20, 0.25) 100%
+    ) !important;
+  border: 1.5px solid var(--gold) !important;
+}
+
+.app-bg.dark-mode .pull-count-btn {
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: var(--papyrus-darker) !important;
+  border-color: rgba(212, 168, 67, 0.15) !important;
+}
+
+.app-bg.dark-mode .pull-count-btn:hover {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.app-bg.dark-mode .pull-count-btn.active {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212, 168, 67, 0.3),
+      rgba(139, 105, 20, 0.2)
+    ) !important;
+  border-color: rgba(212, 168, 67, 0.55) !important;
+  color: var(--gold-light) !important;
+}
+
+.app-bg.dark-mode .card-deck-count {
+  color: rgba(212, 168, 67, 0.4) !important;
+}
+
+.app-bg.dark-mode .card-puxar-hint {
+  color: rgba(212, 168, 67, 0.45) !important;
+}
+
+/* ===== Dark mode palette tune (blue + gold, closer to reference) ===== */
+.app-bg.dark-mode {
+  --obsidian: #06143a;
+  --obsidian-light: #0b1f52;
+  --gold-light: #e8cf8a;
+  --gold: #d5b56a;
+  --gold-deep: #ae8e49;
+  --gold-dark: #8a6f36;
+  --gold-glow: rgba(213, 181, 106, 0.42);
+  background-color: #050f2f;
+  background-image:
+    linear-gradient(rgba(3, 8, 24, 0.8), rgba(3, 8, 24, 0.8)),
+    url('/Background.png');
+}
+
+.app-bg.dark-mode .tool {
+  background: linear-gradient(180deg, rgba(9, 22, 58, 0.94), rgba(6, 15, 40, 0.96));
+  border: 1px solid rgba(213, 181, 106, 0.28) !important;
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(213, 181, 106, 0.1);
+}
+
+.app-bg.dark-mode .painel,
+.app-bg.dark-mode .criticos-fontes-panel,
+.app-bg.dark-mode .subida-nivel-escolha,
+.app-bg.dark-mode .pericia-item,
+.app-bg.dark-mode .session-chat-feed,
+.app-bg.dark-mode .session-chat-msg,
+.app-bg.dark-mode .nivel-info,
+.app-bg.dark-mode .admin-modal-card {
+  background: rgba(8, 20, 54, 0.86) !important;
+  border-color: rgba(213, 181, 106, 0.3) !important;
+}
+
+.app-bg.dark-mode .panel-title,
+.app-bg.dark-mode .pericia-nome,
+.app-bg.dark-mode .result-text,
+.app-bg.dark-mode .vida-titulo,
+.app-bg.dark-mode .vida-valor {
+  color: #f4e2b2 !important;
+}
+
+.app-bg.dark-mode .text-slate-600,
+.app-bg.dark-mode .text-slate-700,
+.app-bg.dark-mode .text-slate-800,
+.app-bg.dark-mode .card-deck-count,
+.app-bg.dark-mode .card-puxar-hint,
+.app-bg.dark-mode .result-hint,
+.app-bg.dark-mode .anotacoes-label,
+.app-bg.dark-mode .painel p,
+.app-bg.dark-mode .painel li,
+.app-bg.dark-mode .panel-table td,
+.app-bg.dark-mode .panel-table caption {
+  color: #d6c18a !important;
+}
+
+.app-bg.dark-mode .card-body {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(213, 181, 106, 0.06) 0%, transparent 62%),
+    linear-gradient(180deg, rgba(5, 20, 66, 0.96) 0%, rgba(4, 14, 46, 0.98) 100%) !important;
+}
+
+.app-bg.dark-mode .card-bonus {
+  background: linear-gradient(180deg, rgba(213, 181, 106, 0.09) 0%, rgba(213, 181, 106, 0.04) 100%) !important;
+  border-color: rgba(213, 181, 106, 0.22) !important;
+}
+
+.app-bg.dark-mode .card-result-body {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(213, 181, 106, 0.06) 0%, transparent 60%),
+    var(--obsidian) !important;
+}
+
+.app-bg.dark-mode .card-stats {
+  background: linear-gradient(135deg, rgba(213, 181, 106, 0.1) 0%, rgba(2, 8, 26, 0.55) 52%, rgba(213, 181, 106, 0.1) 100%) !important;
+  border-color: rgba(213, 181, 106, 0.26) !important;
+}
+
+.app-bg.dark-mode .card-stats span {
+  background: rgba(2, 8, 26, 0.58) !important;
+  border-color: rgba(213, 181, 106, 0.2) !important;
+}
+
+.app-bg.dark-mode .card-controls button,
+.app-bg.dark-mode .pull-count-btn {
+  border-color: rgba(213, 181, 106, 0.45) !important;
+}
