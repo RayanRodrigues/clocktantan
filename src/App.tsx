@@ -32,7 +32,6 @@ import {
   getPericiaPercentual,
   type Card,
 } from "./utils/gameState";
-import { preloadSounds } from "./utils/soundManager";
 
 const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
 const CHAT_ROOM_ID = "mesa-principal";
@@ -53,12 +52,6 @@ export function App() {
       ? "dark"
       : "light";
   });
-
-  // 🔊 Pré-carregar todos os sons ao iniciar o app
-  useEffect(() => {
-    preloadSounds();
-  }, []);
-
   const {
     personagemNome,
     setPersonagemNome,
@@ -121,7 +114,6 @@ export function App() {
     handleIncrementEngPericia,
     handleDecrementEngPericia,
   } = useCharacterSheet();
-
   const [chatMessages, setChatMessages] = useState<SessionChatMessage[]>([]);
   const [chatDraft, setChatDraft] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -276,7 +268,6 @@ export function App() {
     },
     [authUser, getSenderName, targetCharacterUid]
   );
-
   const publishSkillRollInChat = useCallback(
     async (
       nomePericia: string,
@@ -344,7 +335,7 @@ export function App() {
 
         if (comVantagem) {
           const segunda = await diceRollerRef.current.rollD100({
-            label: `${nomePericia} (2/2)`,
+            label: `${nomePericia} (2/2)` ,
             notation: "1d100",
           });
           rolagens.push(segunda.value);
@@ -381,7 +372,6 @@ export function App() {
     },
     [handleRolarPericia, rollPericiaEscolha]
   );
-
   const handleClearChat = useCallback(async () => {
     if (!authUser || !isAdmin) return;
     const ok = window.confirm("Tem certeza que deseja limpar todo o chat da mesa?");
@@ -408,297 +398,312 @@ export function App() {
     [handleConcluirPuxada, publishRollInChat]
   );
 
+
   return (
     <div className={`app-bg ${themeMode === "dark" ? "dark-mode" : ""}`}>
       <div className={`app-layout ${chatCollapsed ? "chat-collapsed" : ""}`}>
-        <div className="tool">
-          <div className="top-header">
-            <div className="top-header-left">
-              <button
-                type="button"
-                className={`theme-toggle theme-toggle-compact ${
-                  themeMode === "dark" ? "theme-toggle-dark" : "theme-toggle-light"
-                }`}
-                onClick={() =>
-                  setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))
-                }
-                title={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-                aria-label={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-              >
-                <span className="theme-toggle-text">
-                  {themeMode === "dark" ? "NIGHT" : "DAY"}
-                </span>
-                <span className="theme-toggle-knob">
-                  <i className={`fas ${themeMode === "dark" ? "fa-moon" : "fa-sun"}`}></i>
-                </span>
-              </button>
-            </div>
-            <div className="top-header-center">
-              <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
-                ? Clock Tan-Tan · Ferramenta do Mestre
-              </h1>
-              <div className="text-center mb-6 text-slate-600 italic">
-                Gerenciamento de decks, progressão, perícias e regras
-              </div>
-            </div>
-            <div className="top-header-right">
-              <button
-                type="button"
-                className="chat-dock-btn"
-                onClick={() => setChatCollapsed((prev) => !prev)}
-                title={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
-                aria-label={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
-              >
-                <i className={`fas ${chatCollapsed ? "fa-comments" : "fa-comment-slash"}`}></i>{" "}
-                {chatCollapsed ? "Abrir chat" : "Minimizar chat"}
-              </button>
-            </div>
-          </div>
-
-          <AuthBar
-            authLoading={authLoading}
-            authUser={authUser}
-            cloudLoading={cloudLoading}
-            isAdmin={isAdmin}
-            targetCharacterUid={targetCharacterUid}
-            onLoginGoogle={handleLoginGoogle}
-            onLogout={handleLogout}
-          />
-
-          <AdminCharacterSelector
-            authUser={authUser}
-            isAdmin={isAdmin}
-            targetCharacterUid={targetCharacterUid}
-            charactersList={charactersList}
-            onSelectCharacter={handleSelectAdminCharacter}
-            onCreateCharacter={handleCreateAdminCharacter}
-            onUpdateCharacterType={handleUpdateAdminCharacterType}
-            onDeleteCharacter={handleDeleteAdminCharacter}
-          />
-
-          <div className="personagem-info">
-            <label className="personagem-campo">
-              <span>Nome do personagem</span>
-              <input
-                type="text"
-                value={personagemNome}
-                onChange={(e) => setPersonagemNome(e.target.value)}
-                placeholder="Ex.: Arion"
-                maxLength={60}
-              />
-            </label>
-            <label className="personagem-campo personagem-campo-idade">
-              <span>Idade</span>
-              <input
-                type="number"
-                min={0}
-                max={999}
-                value={personagemIdade}
-                onChange={(e) => setPersonagemIdade(e.target.value)}
-                placeholder="Ex.: 27"
-              />
-            </label>
-          </div>
-
-          <LifePanel
-            vidaAtual={vidaAtual}
-            vidaMaxima={vidaMaxima}
-            vidaPercentual={vidaPercentual}
-            vidaAjusteRapido={vidaAjusteRapido}
-            caModificador={caModificador}
-            onVidaAjusteRapidoChange={setVidaAjusteRapido}
-            onAplicarAjusteVida={handleAplicarAjusteVida}
-            onSetVidaAtual={setVidaAtual}
-            onSetVidaCheia={() => setVidaAtual(vidaMaxima)}
-            onSetCaModificador={setCaModificador}
-          />
-
-          <LevelControlsPanel
-            nivel={nivel}
-            pontosDistribuir={pontosDistribuir}
-            planoSubida={planoSubida}
-            mostrarEscolhaSubida={mostrarEscolhaSubida}
-            modoEdicaoDecks={modoEdicaoDecks}
-            mostrarPainelCriticos={mostrarPainelCriticos}
-            transformacoesCriticoSabedoria={transformacoesCriticoSabedoria}
-            transformacoesCriticoTotais={transformacoesCriticoTotais}
-            transformacoesCriticoUsadas={transformacoesCriticoUsadas}
-            transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
-            criticosFontes={criticosFontes}
-            onSubirNivel={handleSubirNivel}
-            onToggleModoEdicaoDecks={handleToggleModoEdicaoDecks}
-            onTogglePainelCriticos={handleTogglePainelCriticos}
-            onAplicarSubidaNivel={aplicarSubidaNivel}
-            onFecharEscolhaSubida={() => setMostrarEscolhaSubida(false)}
-            onAjustarCriticosFonte={handleAjustarCriticosFonte}
-          />
-
-          <div className="principal">
-            <div className="decks-section">
-              <div className="decks-grid">
-                {ATRIBUTOS.map((attr) => (
-                  <DeckCard
-                    key={attr}
-                    attr={attr}
-                    deck={decks[attr]}
-                    acertosComuns={acertosComuns[attr]}
-                    resultado={resultados[attr]}
-                    pontosDistribuir={pontosDistribuir}
-                    isFlipped={flipped[attr]}
-                    criticosExtrasNoAtributo={criticosExtras[attr] || 0}
-                    transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
-                    mostrarControlesEdicao={modoEdicaoDecks}
-                    onPuxar={(quantidade) => handlePuxar(attr, quantidade)}
-                    onConcluirPuxada={(cartas) => handleConcluirPuxadaComChat(attr, cartas)}
-                    onReembaralhar={() => handleReembaralhar(attr)}
-                    onDecrement={() => handleDecrement(attr)}
-                    onIncrement={() => handleIncrement(attr)}
-                    onConverterAcertoEmCritico={() => handleConverterAcertoEmCritico(attr)}
-                    onFlipBack={() => handleFlipBack(attr)}
-                  />
-                ))}
-              </div>
-              <div className="text-center my-5">
-                <button
-                  onClick={handleReembaralharTodos}
-                  className="py-3 px-8 border-2 border-slate-500 bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-lg"
-                >
-                  🔄 Reembaralhar todos os decks
-                </button>
-              </div>
-            </div>
-
-            <CharacterSidebar
-              personagemImagem={personagemImagem}
-              personagemImagemLink={personagemImagemLink}
-              onPersonagemImagemLinkChange={setPersonagemImagemLink}
-              onUsarImagemPorLink={handleUsarImagemPorLink}
-              onRemoverImagem={() => setPersonagemImagem("")}
-            />
-          </div>
-
-          <div className="paineis-inferiores">
-            <ReferencePanels />
-
-            <NotesEditor
-              title="Anotações"
-              iconClass="fas fa-sticky-note"
-              value={anotacoesHorizonte}
-              onChange={setAnotacoesHorizonte}
-              placeholder="Registre custos de tempo, consequências e urgências da cena..."
-            />
-
-            <SkillsPanel
-              pericias={pericias}
-              engenhosidadeTotal={engenhosidadeTotal}
-              onToggleBonusPericia={handleToggleBonusPericia}
-              onToggleProficienciaPericia={handleToggleProficienciaPericia}
-              onIncrementEngPericia={handleIncrementEngPericia}
-              onDecrementEngPericia={handleDecrementEngPericia}
-              onRolarPericia={(nomePericia) => {
-                setRollPericiaEscolha(nomePericia);
-              }}
-              rollingPericiaNome={rollingPericiaNome}
-            />
-
-            <NotesEditor
-              title="Características do personagem"
-              iconClass="fas fa-pen"
-              value={anotacoes}
-              onChange={setAnotacoes}
-              placeholder="Escreva observações da sessão, ideias de cena, nomes, pistas..."
-              panelClassName="anotacoes-painel"
-            />
-          </div>
-
-          <footer className="app-footer">
-            <span>Criado por Rayan de Paula</span>
-            <span className="app-footer-sep">·</span>
-            <a
-              href="https://github.com/RayanRodrigues"
-              target="_blank"
-              rel="noreferrer"
+      <div className="tool">
+        <div className="top-header">
+          <div className="top-header-left">
+            <button
+              type="button"
+              className={`theme-toggle theme-toggle-compact ${
+                themeMode === "dark" ? "theme-toggle-dark" : "theme-toggle-light"
+              }`}
+              onClick={() =>
+                setThemeMode((prev) => (prev === "dark" ? "light" : "dark"))
+              }
+              title={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-label={themeMode === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
             >
-              GitHub
-            </a>
-            <span className="app-footer-sep">·</span>
-            <a
-              href="https://www.linkedin.com/in/rayan-rodrigues-pontes-de-paula-24b9a5233/"
-              target="_blank"
-              rel="noreferrer"
+              <span className="theme-toggle-text">
+                {themeMode === "dark" ? "NIGHT" : "DAY"}
+              </span>
+              <span className="theme-toggle-knob">
+                <i className={`fas ${themeMode === "dark" ? "fa-moon" : "fa-sun"}`}></i>
+              </span>
+            </button>
+          </div>
+          <div className="top-header-center">
+            <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
+              ? Clock Tan-Tan · Ferramenta do Mestre
+            </h1>
+            <div className="text-center mb-6 text-slate-600 italic">
+              Gerenciamento de decks, progressão, perícias e regras
+            </div>
+          </div>
+          <div className="top-header-right">
+            <button
+              type="button"
+              className="chat-dock-btn"
+              onClick={() => setChatCollapsed((prev) => !prev)}
+              title={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
+              aria-label={chatCollapsed ? "Expandir chat" : "Minimizar chat"}
             >
-              LinkedIn
-            </a>
-          </footer>
+              <i className={`fas ${chatCollapsed ? "fa-comments" : "fa-comment-slash"}`}></i>{" "}
+              {chatCollapsed ? "Abrir chat" : "Minimizar chat"}
+            </button>
+          </div>
+        </div>
+        <AuthBar
+          authLoading={authLoading}
+          authUser={authUser}
+          cloudLoading={cloudLoading}
+          isAdmin={isAdmin}
+          targetCharacterUid={targetCharacterUid}
+          onLoginGoogle={handleLoginGoogle}
+          onLogout={handleLogout}
+        />
+        <AdminCharacterSelector
+          authUser={authUser}
+          isAdmin={isAdmin}
+          targetCharacterUid={targetCharacterUid}
+          charactersList={charactersList}
+          onSelectCharacter={handleSelectAdminCharacter}
+          onCreateCharacter={handleCreateAdminCharacter}
+          onUpdateCharacterType={handleUpdateAdminCharacterType}
+          onDeleteCharacter={handleDeleteAdminCharacter}
+        />
+
+        <div className="personagem-info">
+          <label className="personagem-campo">
+            <span>Nome do personagem</span>
+            <input
+              type="text"
+              value={personagemNome}
+              onChange={(e) => setPersonagemNome(e.target.value)}
+              placeholder="Ex.: Arion"
+              maxLength={60}
+            />
+          </label>
+          <label className="personagem-campo personagem-campo-idade">
+            <span>Idade</span>
+            <input
+              type="number"
+              min={0}
+              max={999}
+              value={personagemIdade}
+              onChange={(e) => setPersonagemIdade(e.target.value)}
+              placeholder="Ex.: 27"
+            />
+          </label>
         </div>
 
-        {!chatCollapsed && (
-          <aside className="chat-outside">
-            <SessionChat
-              title="Chat da Mesa"
-              messages={chatMessages}
-              draft={chatDraft}
-              loading={chatLoading}
-              canClear={isAdmin}
-              clearing={chatClearing}
-              collapsed={false}
-              showToggle={false}
-              onCollapsedChange={setChatCollapsed}
-              disabled={!authUser}
-              onDraftChange={setChatDraft}
-              onSend={() => {
-                void handleSendChatMessage();
-              }}
-              onClear={() => {
-                void handleClearChat();
-              }}
-            />
-          </aside>
-        )}
+        <LifePanel
+          vidaAtual={vidaAtual}
+          vidaMaxima={vidaMaxima}
+          vidaPercentual={vidaPercentual}
+          vidaAjusteRapido={vidaAjusteRapido}
+          caModificador={caModificador}
+          onVidaAjusteRapidoChange={setVidaAjusteRapido}
+          onAplicarAjusteVida={handleAplicarAjusteVida}
+          onSetVidaAtual={setVidaAtual}
+          onSetVidaCheia={() => setVidaAtual(vidaMaxima)}
+          onSetCaModificador={setCaModificador}
+        />
 
-        {rollPericiaEscolha && (
-          <div className="dice-mode-modal-backdrop" role="dialog" aria-modal="true">
-            <div className="dice-mode-modal">
-              <h3>
-                <i className="fas fa-dice-d20"></i> Escolher rolagem
-              </h3>
-              <p>
-                Perícia: <strong>{rollPericiaEscolha}</strong>
-              </p>
-              <p>Selecione o modo do teste:</p>
-              <div className="dice-mode-modal-actions">
-                <button
-                  type="button"
-                  onClick={() => handleEscolherModoRolagemPericia("normal")}
-                >
-                  Normal (100%)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleEscolherModoRolagemPericia("half")}
-                >
-                  Dificuldade 1/2
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleEscolherModoRolagemPericia("quarter")}
-                >
-                  Dificuldade 1/4
-                </button>
-                <button
-                  type="button"
-                  className="dice-mode-cancel"
-                  onClick={() => setRollPericiaEscolha(null)}
-                >
-                  Cancelar
-                </button>
-              </div>
+        <LevelControlsPanel
+          nivel={nivel}
+          pontosDistribuir={pontosDistribuir}
+          planoSubida={planoSubida}
+          mostrarEscolhaSubida={mostrarEscolhaSubida}
+          modoEdicaoDecks={modoEdicaoDecks}
+          mostrarPainelCriticos={mostrarPainelCriticos}
+          transformacoesCriticoSabedoria={transformacoesCriticoSabedoria}
+          transformacoesCriticoTotais={transformacoesCriticoTotais}
+          transformacoesCriticoUsadas={transformacoesCriticoUsadas}
+          transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
+          criticosFontes={criticosFontes}
+          onSubirNivel={handleSubirNivel}
+          onToggleModoEdicaoDecks={handleToggleModoEdicaoDecks}
+          onTogglePainelCriticos={handleTogglePainelCriticos}
+          onAplicarSubidaNivel={aplicarSubidaNivel}
+          onFecharEscolhaSubida={() => setMostrarEscolhaSubida(false)}
+          onAjustarCriticosFonte={handleAjustarCriticosFonte}
+        />
+
+        <div className="principal">
+          {/* Decks section */}
+          <div className="decks-section">
+            <div className="decks-grid">
+              {ATRIBUTOS.map((attr) => (
+                <DeckCard
+                  key={attr}
+                  attr={attr}
+                  deck={decks[attr]}
+                  acertosComuns={acertosComuns[attr]}
+                  resultado={resultados[attr]}
+                  pontosDistribuir={pontosDistribuir}
+                  isFlipped={flipped[attr]}
+                  criticosExtrasNoAtributo={criticosExtras[attr] || 0}
+                  transformacoesCriticoDisponiveis={transformacoesCriticoDisponiveis}
+                  mostrarControlesEdicao={modoEdicaoDecks}
+                  onPuxar={(quantidade) => handlePuxar(attr, quantidade)}
+                  onConcluirPuxada={(cartas) => handleConcluirPuxadaComChat(attr, cartas)}
+                  onReembaralhar={() => handleReembaralhar(attr)}
+                  onDecrement={() => handleDecrement(attr)}
+                  onIncrement={() => handleIncrement(attr)}
+                  onConverterAcertoEmCritico={() => handleConverterAcertoEmCritico(attr)}
+                  onFlipBack={() => handleFlipBack(attr)}
+                />
+              ))}
+            </div>
+            <div className="text-center my-5">
+              <button
+                onClick={handleReembaralharTodos}
+                className="py-3 px-8 border-2 border-slate-500 bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-lg"
+              >
+                🔄 Reembaralhar todos os decks
+              </button>
             </div>
           </div>
-        )}
 
-        <DiceRollerOverlay ref={diceRollerRef} />
+          {/* Painel lateral: Retrato e Afinidade */}
+          <CharacterSidebar
+            personagemImagem={personagemImagem}
+            personagemImagemLink={personagemImagemLink}
+            onPersonagemImagemLinkChange={setPersonagemImagemLink}
+            onUsarImagemPorLink={handleUsarImagemPorLink}
+            onRemoverImagem={() => setPersonagemImagem("")}
+          />
+        </div>
+
+        {/* Painéis inferiores */}
+        <div className="paineis-inferiores">
+          <ReferencePanels />
+
+          <NotesEditor
+            title="Anotações"
+            iconClass="fas fa-sticky-note"
+            value={anotacoesHorizonte}
+            onChange={setAnotacoesHorizonte}
+            placeholder="Registre custos de tempo, consequências e urgências da cena..."
+          />
+
+          {/* Perícias & Engenhosidade */}
+          <SkillsPanel
+            pericias={pericias}
+            engenhosidadeTotal={engenhosidadeTotal}
+            onToggleBonusPericia={handleToggleBonusPericia}
+            onToggleProficienciaPericia={handleToggleProficienciaPericia}
+            onIncrementEngPericia={handleIncrementEngPericia}
+            onDecrementEngPericia={handleDecrementEngPericia}
+            onRolarPericia={(nomePericia) => {
+              setRollPericiaEscolha(nomePericia);
+            }}
+            rollingPericiaNome={rollingPericiaNome}
+          />
+
+          <NotesEditor
+            title="Características do personagem"
+            iconClass="fas fa-pen"
+            value={anotacoes}
+            onChange={setAnotacoes}
+            placeholder="Escreva observações da sessão, ideias de cena, nomes, pistas..."
+            panelClassName="anotacoes-painel"
+          />
+        </div>
+
+        <footer className="app-footer">
+          <span>Criado por Rayan de Paula</span>
+          <span className="app-footer-sep">·</span>
+          <a
+            href="https://github.com/RayanRodrigues"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+          <span className="app-footer-sep">·</span>
+          <a
+            href="https://www.linkedin.com/in/rayan-rodrigues-pontes-de-paula-24b9a5233/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            LinkedIn
+          </a>
+        </footer>
+      </div>
+      {!chatCollapsed && (
+        <aside className="chat-outside">
+          <SessionChat
+            title="Chat da Mesa"
+            messages={chatMessages}
+            draft={chatDraft}
+            loading={chatLoading}
+            canClear={isAdmin}
+            clearing={chatClearing}
+            collapsed={false}
+            showToggle={false}
+            onCollapsedChange={setChatCollapsed}
+            disabled={!authUser}
+            onDraftChange={setChatDraft}
+            onSend={() => {
+              void handleSendChatMessage();
+            }}
+            onClear={() => {
+              void handleClearChat();
+            }}
+          />
+        </aside>
+      )}
+      {rollPericiaEscolha && (
+        <div className="dice-mode-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="dice-mode-modal">
+            <h3>
+              <i className="fas fa-dice-d20"></i> Escolher rolagem
+            </h3>
+            <p>
+              Perícia: <strong>{rollPericiaEscolha}</strong>
+            </p>
+            <p>Selecione o modo do teste:</p>
+            <div className="dice-mode-modal-actions">
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("normal")}
+              >
+                Normal (100%)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("half")}
+              >
+                Dificuldade 1/2
+              </button>
+              <button
+                type="button"
+                onClick={() => handleEscolherModoRolagemPericia("quarter")}
+              >
+                Dificuldade 1/4
+              </button>
+              <button
+                type="button"
+                className="dice-mode-cancel"
+                onClick={() => setRollPericiaEscolha(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <DiceRollerOverlay ref={diceRollerRef} />
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

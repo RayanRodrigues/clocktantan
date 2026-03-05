@@ -4516,3 +4516,104 @@ a:hover i {
 .app-bg.dark-mode .pull-count-btn {
   border-color: rgba(213, 181, 106, 0.45) !important;
 }
+
+.card-header-icon .attr-svg-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+
+.bonus-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+
+.bonus-row-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bonus-row-icon img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
+
+.bonus-row-icon-fallback {
+  display: none;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+/* Subatributos maiores */
+.card-bonus .bonus-row {
+  font-size: 0.94rem;
+  gap: 8px;
+  margin: 5px 0;
+}
+
+.card-bonus .bonus-row-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.card-bonus .bonus-row-icon img {
+  width: 18px;
+  height: 18px;
+}
+
+.card-bonus .bonus-row-icon-fallback {
+  font-size: 0.95rem;
+}
+
+.card-bonus strong {
+  font-size: 1.02em;
+}
+
+/* Subatributos maiores - ajuste extra */
+.card-bonus .bonus-row {
+  font-size: 1.02rem;
+  gap: 9px;
+  margin: 6px 0;
+}
+
+.card-bonus .bonus-row-icon,
+.card-bonus .bonus-row-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+.card-bonus .bonus-row-icon-fallback {
+  font-size: 1.02rem;
+}
+
+/* Subatributos maiores - ajuste final */
+.card-bonus .bonus-row {
+  font-size: 1.08rem;
+  gap: 10px;
+  margin: 6px 0;
+}
+
+.card-bonus .bonus-row-icon,
+.card-bonus .bonus-row-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.card-bonus .bonus-row-icon-fallback {
+  font-size: 1.08rem;
+}
+
+/* Subatributos - mais espaco vertical entre linhas */
+.card-bonus .bonus-row {
+  margin: 9px 0;
+  line-height: 1.35;
+}
