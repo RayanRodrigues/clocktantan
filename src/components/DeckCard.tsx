@@ -46,6 +46,14 @@ const RESULT_IMAGE_BY_TYPE: Record<Card["tipo"], string> = {
   erro_critico: "/cards/ErroCrit-Card.png",
 };
 
+const ACTION_ICON_IMAGE = {
+  puxar: "/icons/acoes/puxar.svg",
+  reemb: "/icons/acoes/reemb.svg",
+  "hint-puxar": "/icons/acoes/hint-puxar.svg",
+} as const;
+
+type ActionIconName = keyof typeof ACTION_ICON_IMAGE;
+
 function normalizeAttrKey(attr: string): string {
   return attr
     .normalize("NFD")
@@ -286,7 +294,13 @@ export function DeckCard({
   const iconSlug = normalizeAttrKey(attr);
   const attrIconSrc = ATTR_ICON_IMAGE[iconSlug] || "";
   const [attrIconFailed, setAttrIconFailed] = useState(false);
+  const [actionIconFailed, setActionIconFailed] = useState<Record<ActionIconName, boolean>>({
+    puxar: false,
+    reemb: false,
+    "hint-puxar": false,
+  });
   const [pullCount, setPullCount] = useState<1 | 2 | 3>(1);
+  const [pullCountMenuOpen, setPullCountMenuOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawPhase, setDrawPhase] = useState<DrawPhase>("moving");
   const [canCenterFlip, setCanCenterFlip] = useState(false);
@@ -296,6 +310,7 @@ export function DeckCard({
   const [drawAnim, setDrawAnim] = useState<DrawAnimState | null>(null);
 
   const flipCardRef = useRef<HTMLDivElement | null>(null);
+  const pullCountMenuRef = useRef<HTMLDivElement | null>(null);
   const moveTimerRef = useRef<number | null>(null);
   const stepTimerRef = useRef<number | null>(null);
   const dismissTimerRef = useRef<number | null>(null);
@@ -324,6 +339,22 @@ export function DeckCard({
   useEffect(() => {
     setAttrIconFailed(false);
   }, [attrIconSrc]);
+
+  useEffect(() => {
+    if (!pullCountMenuOpen) return;
+    const handleOutsidePointer = (event: MouseEvent) => {
+      if (!pullCountMenuRef.current) return;
+      if (!pullCountMenuRef.current.contains(event.target as Node)) {
+        setPullCountMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsidePointer);
+    return () => document.removeEventListener("mousedown", handleOutsidePointer);
+  }, [pullCountMenuOpen]);
+
+  useEffect(() => {
+    if (isDrawing) setPullCountMenuOpen(false);
+  }, [isDrawing]);
 
   useEffect(() => {
     return () => {
@@ -437,6 +468,25 @@ export function DeckCard({
   };
 
   const hasMultipleResults = resultado.length > 1;
+  const ActionIcon = ({
+    name,
+    fallbackClass,
+    className,
+  }: {
+    name: ActionIconName;
+    fallbackClass: string;
+    className: string;
+  }) =>
+    actionIconFailed[name] ? (
+      <i className={`fas ${fallbackClass}`} aria-hidden="true"></i>
+    ) : (
+      <img
+        src={ACTION_ICON_IMAGE[name]}
+        alt=""
+        className={className}
+        onError={() => setActionIconFailed((prev) => ({ ...prev, [name]: true }))}
+      />
+    );
 
   return (
     <div className="card-wrapper" style={cssVars}>
@@ -492,7 +542,12 @@ export function DeckCard({
                     gap: "4px",
                   }}
                 >
-                  <i className="fas fa-hand-pointer"></i> Clique em "Puxar"
+                  <ActionIcon
+                    name="hint-puxar"
+                    fallbackClass="fa-hand-pointer"
+                    className="hint-inline-icon"
+                  />{" "}
+                  Clique em "Puxar"
                   para sacar
                 </div>
               </div>
@@ -646,22 +701,46 @@ export function DeckCard({
         )}
         {!mostrarControlesEdicao && (
           <>
-            <div className="pull-count-group" role="group" aria-label={`Qtd ${attr}`}>
-              {[1, 2, 3].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`pull-count-btn ${pullCount === n ? "active" : ""}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPullCount(n as 1 | 2 | 3);
-                  }}
-                  disabled={isDrawing}
-                  title={`Puxar ${n} carta(s)`}
-                >
-                  {n}x
-                </button>
-              ))}
+            <div
+              ref={pullCountMenuRef}
+              className={`pull-count-compact ${pullCountMenuOpen ? "open" : ""}`}
+            >
+              <button
+                type="button"
+                className="pull-count-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isDrawing) return;
+                  setPullCountMenuOpen((prev) => !prev);
+                }}
+                disabled={isDrawing}
+                title={`Quantidade atual: ${pullCount}x`}
+                aria-expanded={pullCountMenuOpen}
+                aria-haspopup="listbox"
+                aria-label={`Quantidade de cartas (${pullCount}x)`}
+              >
+                {pullCount}x
+              </button>
+              <div className="pull-count-menu" role="listbox" aria-label={`Qtd ${attr}`}>
+                {[1, 2, 3].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`pull-count-btn ${pullCount === n ? "active" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPullCount(n as 1 | 2 | 3);
+                      setPullCountMenuOpen(false);
+                    }}
+                    disabled={isDrawing}
+                    title={`Puxar ${n} carta(s)`}
+                    role="option"
+                    aria-selected={pullCount === n}
+                  >
+                    {n}x
+                  </button>
+                ))}
+              </div>
             </div>
             <button
               className="btn-puxar"
@@ -671,7 +750,8 @@ export function DeckCard({
               }}
               disabled={isDrawing || total < pullCount}
             >
-              <i className="fas fa-hand-point-up"></i> Puxar
+              <ActionIcon name="puxar" fallbackClass="fa-hand-point-up" className="action-btn-icon" />{" "}
+              Puxar
             </button>
             <button
               onClick={(e) => {
@@ -682,7 +762,7 @@ export function DeckCard({
               }}
               disabled={isDrawing}
             >
-              <i className="fas fa-sync-alt"></i> Reemb.
+              <ActionIcon name="reemb" fallbackClass="fa-sync-alt" className="action-btn-icon" /> Reemb.
             </button>
           </>
         )}

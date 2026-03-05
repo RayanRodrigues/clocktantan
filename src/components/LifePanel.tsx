@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface LifePanelProps {
   vidaAtual: number;
   vidaMaxima: number;
@@ -23,15 +25,39 @@ export function LifePanel({
   onSetVidaCheia,
   onSetCaModificador,
 }: LifePanelProps) {
+  const [iconFailed, setIconFailed] = useState<Record<string, boolean>>({});
+
+  const InlineIcon = ({
+    name,
+    fallbackClass,
+  }: {
+    name: string;
+    fallbackClass: string;
+  }) =>
+    iconFailed[name] ? (
+      <i className={`fas ${fallbackClass}`} aria-hidden="true"></i>
+    ) : (
+      <img
+        src={`/icons/vida/${name}.svg`}
+        alt=""
+        className="vida-inline-icon"
+        onError={() => setIconFailed((prev) => ({ ...prev, [name]: true }))}
+      />
+    );
+
   return (
     <div className="vida-painel">
       <div className="vida-topo">
-        <span className="vida-titulo">❤️ Vida</span>
+        <span className="vida-titulo">
+          <InlineIcon name="vida" fallbackClass="fa-heart" /> Vida
+        </span>
         <span className="vida-valor">
           {vidaAtual} / {vidaMaxima}
         </span>
         <div className="ca-controles" role="group" aria-label="Classe de Armadura">
-          <span className="ca-label">CA</span>
+          <span className="ca-label">
+            <InlineIcon name="ca" fallbackClass="fa-shield-alt" /> CA
+          </span>
           {([-2, -1, 0, 1, 2] as const).map((valor) => (
             <button
               key={`ca-${valor}`}
@@ -61,7 +87,7 @@ export function LifePanel({
           value={vidaAjusteRapido}
           onChange={(e) => onVidaAjusteRapidoChange(e.target.value)}
           placeholder="+2 ou -3"
-          aria-label="Ajuste rápido de vida"
+          aria-label="Ajuste rapido de vida"
           onKeyDown={(e) => {
             if (e.key === "Enter") onAplicarAjusteVida();
           }}
@@ -83,7 +109,7 @@ export function LifePanel({
           aria-label="Vida atual"
         />
       </div>
-      <div className="vida-meta">Constituição: cada acerto vale 4 de vida.</div>
+      <div className="vida-meta">Constituicao: cada acerto vale 4 de vida.</div>
     </div>
   );
 }

@@ -2794,7 +2794,7 @@
   color: #e2e8f0;
 }
 
-.app-bg.dark-mode .dice-mode-modal-actions button {
+.app-bg.dark-mode .dice-mode-modal-actions butto.topbar-iconn {
   background: #1f2937;
   border-color: #475569;
   color: #e2e8f0;
@@ -4616,4 +4616,328 @@ a:hover i {
 .card-bonus .bonus-row {
   margin: 9px 0;
   line-height: 1.35;
+}
+
+.action-btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.hint-inline-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
+/* Botões dos cards maiores */
+.card-controls {
+  gap: 8px;
+}
+
+.pull-count-btn {
+  min-width: 42px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  font-size: 0.82rem !important;
+}
+
+.card-controls button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+}
+
+.btn-puxar {
+  padding: 9px 18px !important;
+}
+
+.action-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Fix: evitar corte de texto nos botoes dos cards */
+.card-controls {
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.card-controls button {
+  white-space: nowrap;
+  min-width: 92px;
+  padding: 8px 12px;
+}
+
+.pull-count-group {
+  flex: 0 0 auto;
+}
+
+.pull-count-btn {
+  min-width: 40px !important;
+}
+
+.btn-puxar {
+  min-width: 104px;
+}
+
+/* Pull count compacto: mostra apenas 1x/2x/3x atual e abre ao clicar */
+.pull-count-compact {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.pull-count-toggle {
+  min-width: 56px !important;
+  min-height: 40px !important;
+  padding: 8px 12px !important;
+}
+
+.pull-count-compact .pull-count-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 168, 67, 0.35);
+  background: rgba(3, 10, 30, 0.94);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 15;
+}
+
+.pull-count-compact.open .pull-count-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.pull-count-compact .pull-count-menu .pull-count-btn {
+  min-width: 44px !important;
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+}
+
+/* Botao global: Reembaralhar todos os decks no mesmo estilo dos botoes de card */
+.global-reemb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--gold-dark);
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.15) 0%, rgba(139, 105, 20, 0.1) 100%);
+  color: var(--gold-light);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.global-reemb-btn:hover {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.25) 0%, rgba(139, 105, 20, 0.18) 100%);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(212, 168, 67, 0.2);
+}
+
+.global-reemb-btn:active {
+  transform: translateY(1px);
+}
+
+.app-bg.dark-mode .global-reemb-btn {
+  border-color: rgba(213, 181, 106, 0.45);
+}
+
+/* Top bar (nivel/acertos + botoes) */
+.nivel-info {
+  background: linear-gradient(180deg, rgba(8, 22, 63, 0.9), rgba(5, 16, 46, 0.92)) !important;
+  border: 2px solid rgba(213, 181, 106, 0.35) !important;
+  border-radius: 28px;
+  box-shadow: inset 0 0 0 1px rgba(213, 181, 106, 0.1);
+  justify-content: space-between;
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.nivel-info > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f1ddb0 !important;
+}
+
+.nivel-info > span .text-green-700 {
+  color: #34d399 !important;
+}
+
+.topbar-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-dark);
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.16) 0%, rgba(139, 105, 20, 0.11) 100%);
+  color: var(--gold-light);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.topbar-btn:hover {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.25) 0%, rgba(139, 105, 20, 0.18) 100%);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(212, 168, 67, 0.2);
+}
+
+.topbar-btn:active {
+  transform: translateY(0);
+}
+
+.topbar-btn-primary {
+  min-width: 138px;
+}
+
+.topbar-btn-neutral {
+  min-width: 136px;
+}
+
+.topbar-btn-accent {
+  border-color: rgba(213, 181, 106, 0.72);
+  background: linear-gradient(180deg, rgba(213, 181, 106, 0.28) 0%, rgba(142, 108, 37, 0.24) 100%);
+  color: #fff;
+}
+
+.app-bg.dark-mode .nivel-info {
+  background: linear-gradient(180deg, rgba(7, 18, 50, 0.93), rgba(4, 13, 37, 0.95)) !important;
+  border-color: rgba(213, 181, 106, 0.4) !important;
+}
+
+/* Fix: botao Editar decks com contraste correto no topo */
+.nivel-info .modo-edicao-toggle,
+.nivel-info .critico-toggle,
+.app-bg.dark-mode .nivel-info .modo-edicao-toggle,
+.app-bg.dark-mode .nivel-info .critico-toggle {
+  color: var(--gold-light) !important;
+}
+
+.nivel-info .modo-edicao-toggle.topbar-btn-neutral,
+.app-bg.dark-mode .nivel-info .modo-edicao-toggle.topbar-btn-neutral {
+  border-color: rgba(213, 181, 106, 0.55) !important;
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.18) 0%, rgba(139, 105, 20, 0.12) 100%) !important;
+}
+
+.nivel-info .modo-edicao-toggle.topbar-btn-neutral:hover,
+.app-bg.dark-mode .nivel-info .modo-edicao-toggle.topbar-btn-neutral:hover {
+  border-color: var(--gold) !important;
+  background: linear-gradient(180deg, rgba(212, 168, 67, 0.28) 0%, rgba(139, 105, 20, 0.2) 100%) !important;
+  color: #fff !important;
+}
+
+.nivel-info .modo-edicao-toggle.topbar-btn-accent,
+.app-bg.dark-mode .nivel-info .modo-edicao-toggle.topbar-btn-accent {
+  color: #fff !important;
+}
+
+/* Top bar icons maiores */
+.topbar-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* Icones de Puxar/Reemb maiores */
+.action-btn-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Icones inline da area de Vida/CA */
+.vida-titulo,
+.ca-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vida-inline-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Top bar icons maiores */
+.topbar-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Icones da area Vida/CA maiores */
+.vida-inline-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Icone do titulo principal (dia/noite) */
+.app-title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-title-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.app-title-icon-fallback {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* Logo do titulo maior */
+.app-title-icon {
+  width: 34px;
+  height: 34px;
+}
+
+/* Logo do titulo maior (ajuste extra) */
+.app-title-icon {
+  width: 40px;
+  height: 40px;
 }

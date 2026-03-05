@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CriticosFontesState, LevelUpPlan } from "../utils/gameState";
 
 interface LevelControlsPanelProps {
@@ -39,39 +40,58 @@ export function LevelControlsPanel({
   onFecharEscolhaSubida,
   onAjustarCriticosFonte,
 }: LevelControlsPanelProps) {
+  const [topbarIconFailed, setTopbarIconFailed] = useState<Record<string, boolean>>({});
+  const TopbarIcon = ({
+    name,
+    fallbackClass,
+  }: {
+    name: string;
+    fallbackClass: string;
+  }) =>
+    topbarIconFailed[name] ? (
+      <i className={`fas ${fallbackClass}`} aria-hidden="true"></i>
+    ) : (
+      <img
+        src={`/icons/topbar/${name}.svg`}
+        alt=""
+        className="topbar-icon"
+        onError={() => setTopbarIconFailed((prev) => ({ ...prev, [name]: true }))}
+      />
+    );
+
   return (
     <div className="nivel-info">
       <span className="font-bold text-slate-700">
-        🎯 Nível: <span className="text-lg">{nivel}</span>
+        <TopbarIcon name="nivel" fallbackClass="fa-bullseye" /> Nível:{" "}
+        <span className="text-lg">{nivel}</span>
       </span>
       <span className="font-bold text-slate-700">
-        🎴 Acertos para distribuir:{" "}
+        <TopbarIcon name="acertos" fallbackClass="fa-clone" /> Acertos para distribuir:{" "}
         <span className="text-lg text-green-700">{pontosDistribuir}</span>
       </span>
       <button
         onClick={onSubirNivel}
-        className="py-2 px-5 border-2 border-slate-500 bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+        className="topbar-btn topbar-btn-primary"
       >
-        ⬆ Subir Nível
+        <TopbarIcon name="subir-nivel" fallbackClass="fa-arrow-up" /> Subir Nível
       </button>
       <button
         type="button"
         onClick={onToggleModoEdicaoDecks}
-        className={`modo-edicao-toggle py-2 px-4 border-2 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md ${
-          modoEdicaoDecks
-            ? "border-amber-700 bg-amber-600 hover:bg-amber-700 text-white"
-            : "border-slate-500 bg-slate-200 hover:bg-slate-300"
+        className={`modo-edicao-toggle topbar-btn ${
+          modoEdicaoDecks ? "topbar-btn-accent" : "topbar-btn-neutral"
         }`}
       >
-        {modoEdicaoDecks ? "✏️ Editando decks" : "✏️ Editar decks"}
+        <TopbarIcon name="editar-decks" fallbackClass="fa-pencil-alt" />{" "}
+        {modoEdicaoDecks ? "Editando decks" : "Editar decks"}
       </button>
       {modoEdicaoDecks && (
         <button
           type="button"
           onClick={onTogglePainelCriticos}
-          className="critico-toggle py-2 px-4 border-2 border-slate-500 bg-slate-200 hover:bg-slate-300 rounded-full cursor-pointer text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
+          className="critico-toggle topbar-btn topbar-btn-neutral"
         >
-          ✨ Crítico
+          <TopbarIcon name="critico" fallbackClass="fa-star" /> Crítico
         </button>
       )}
       {planoSubida && (

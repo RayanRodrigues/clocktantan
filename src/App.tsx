@@ -32,6 +32,7 @@ import {
   getPericiaPercentual,
   type Card,
 } from "./utils/gameState";
+import { playSound } from "./utils/soundManager";
 
 const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
 const CHAT_ROOM_ID = "mesa-principal";
@@ -52,6 +53,15 @@ export function App() {
       ? "dark"
       : "light";
   });
+  const [headerIconFailed, setHeaderIconFailed] = useState(false);
+  const headerIconSrc =
+    themeMode === "dark"
+      ? "/icons/topbar/logo-dark.svg"
+      : "/icons/topbar/logo-light.svg";
+
+  useEffect(() => {
+    setHeaderIconFailed(false);
+  }, [headerIconSrc]);
   const {
     personagemNome,
     setPersonagemNome,
@@ -426,7 +436,19 @@ export function App() {
           </div>
           <div className="top-header-center">
             <h1 className="text-center mt-0 text-slate-700 text-2xl md:text-3xl font-bold">
-              ? Clock Tan-Tan · Ferramenta do Mestre
+              <span className="app-title-with-icon">
+                {headerIconFailed ? (
+                  <i className="fas fa-dice-d20 app-title-icon-fallback" aria-hidden="true"></i>
+                ) : (
+                  <img
+                    src={headerIconSrc}
+                    alt=""
+                    className="app-title-icon"
+                    onError={() => setHeaderIconFailed(true)}
+                  />
+                )}
+                Clock Tan-Tan · Ferramenta do Mestre
+              </span>
             </h1>
             <div className="text-center mb-6 text-slate-600 italic">
               Gerenciamento de decks, progressão, perícias e regras
@@ -550,10 +572,13 @@ export function App() {
             </div>
             <div className="text-center my-5">
               <button
-                onClick={handleReembaralharTodos}
-                className="py-3 px-8 border-2 border-slate-500 bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer text-base font-bold transition-all hover:scale-105 active:scale-95 shadow-lg"
+                onClick={() => {
+                  playSound("shuffle");
+                  handleReembaralharTodos();
+                }}
+                className="global-reemb-btn"
               >
-                🔄 Reembaralhar todos os decks
+                <img src="/icons/acoes/reemb.svg" alt="" className="action-btn-icon" /> Reembaralhar todos os decks
               </button>
             </div>
           </div>
