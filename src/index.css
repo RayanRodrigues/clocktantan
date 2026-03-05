@@ -4941,3 +4941,57 @@ a:hover i {
   width: 40px;
   height: 40px;
 }
+
+/* Chat em telas menores: evita comprimir a area principal */
+@media (max-width: 1320px) {
+  .app-layout,
+  .app-layout.chat-collapsed {
+    flex-direction: column;
+    max-width: 1900px;
+  }
+
+  .chat-outside,
+  .app-layout.chat-collapsed .chat-outside {
+    width: 100%;
+    min-width: 0;
+    position: static;
+    top: auto;
+    right: auto;
+  }
+
+  .chat-outside .session-chat {
+    min-height: 300px;
+    height: auto;
+  }
+
+  .chat-outside .session-chat-feed {
+    min-height: 200px;
+    max-height: 320px;
+  }
+}
+
+/* Com chat aberto em telas medias/largas: atributos em cima e sidebar embaixo lado a lado */
+@media (max-width: 1700px) and (min-width: 1321px) {
+  .app-layout:not(.chat-collapsed) .principal {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .app-layout:not(.chat-collapsed) .decks-section {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .app-layout:not(.chat-collapsed) .decks-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .app-layout:not(.chat-collapsed) .character-sidebar {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+}
