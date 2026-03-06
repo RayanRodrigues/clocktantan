@@ -41,6 +41,7 @@ const THEME_STORAGE_KEY = "clock_tantan_theme_mode";
 const COMBAT_WALLPAPER_STORAGE_KEY = "clock_tantan_combat_wallpaper";
 const CHAT_ROOM_ID = "mesa-principal";
 const COMBAT_CONFIG_PREFIX = "__COMBAT_CONFIG__:";
+const COMBAT_STATE_PREFIX = "__COMBAT_STATE__:";
 type ThemeMode = "light" | "dark";
 type SkillRollMode = "normal" | "half" | "quarter";
 type AppPage = "sheet" | "combat";
@@ -154,6 +155,7 @@ export function App() {
   const [combatOrderDraft, setCombatOrderDraft] = useState<string[]>([]);
   const [draggingCombatantId, setDraggingCombatantId] = useState<string | null>(null);
   const [publicCombatants, setPublicCombatants] = useState<CombatantItem[] | null>(null);
+  const [liveCombatantsFromChat, setLiveCombatantsFromChat] = useState<CombatantItem[]>([]);
   const [headerIconFailed, setHeaderIconFailed] = useState(false);
   const headerIconSrc =
     themeMode === "dark"
@@ -296,6 +298,7 @@ export function App() {
             docSnap.data() as {
               type?: string;
               text?: string;
+              characterUid?: string;
             }
           )
           .filter(
@@ -375,16 +378,107 @@ export function App() {
           })
           .filter((item): item is CombatantItem => item !== null);
         setPublicCombatants(orderByIds(participants, resolvedOrderIds));
+
+        const byId = new Map<string, CombatantItem>();
+        snap.docs.forEach((docSnap) => {
+          const row = docSnap.data() as {
+            type?: string;
+            text?: string;
+            characterUid?: string;
+          };
+          if (
+            row.type !== "chat" ||
+            typeof row.text !== "string" ||
+            !row.text.startsWith(COMBAT_STATE_PREFIX)
+          ) {
+            return;
+          }
+          let parsed: Partial<CombatantItem> | null = null;
+          try {
+            parsed = JSON.parse(row.text.slice(COMBAT_STATE_PREFIX.length)) as Partial<CombatantItem>;
+          } catch {
+            parsed = null;
+          }
+          const id = row.characterUid || parsed?.id;
+          if (!id || !parsed) return;
+          byId.set(id, {
+            id: String(id),
+            name: typeof parsed.name === "string" ? parsed.name : "Personagem",
+            currentHp:
+              typeof parsed.currentHp === "number" && Number.isFinite(parsed.currentHp)
+                ? Math.max(0, Math.floor(parsed.currentHp))
+                : 0,
+            maxHp:
+              typeof parsed.maxHp === "number" && Number.isFinite(parsed.maxHp)
+                ? Math.max(1, Math.floor(parsed.maxHp))
+                : 1,
+            imageUrl: typeof parsed.imageUrl === "string" ? parsed.imageUrl : "",
+            level:
+              typeof parsed.level === "number" && Number.isFinite(parsed.level)
+                ? Math.max(1, Math.floor(parsed.level))
+                : 1,
+            caMod:
+              typeof parsed.caMod === "number" && Number.isFinite(parsed.caMod)
+                ? Math.floor(parsed.caMod)
+                : 0,
+            type: parsed.type === "npc" ? "npc" : "player",
+          });
+        });
+        const liveList = orderByIds(Array.from(byId.values()), resolvedOrderIds);
+        setLiveCombatantsFromChat(liveList);
       },
       (err) => {
         console.error("Erro ao carregar configuracao do tracker:", err);
         setCombatIncludedIds(null);
         setCombatOrderIds(null);
         setPublicCombatants(null);
+        setLiveCombatantsFromChat([]);
       }
     );
     return () => unsub();
   }, [authUser, currentPage]);
+
+  useEffect(() => {
+    if (!authUser || !targetCharacterUid) return;
+    const typeFromList =
+      charactersList.find((item) => item.id === targetCharacterUid)?.type === "npc"
+        ? "npc"
+        : "player";
+    const payload = JSON.stringify({
+      id: targetCharacterUid,
+      name: personagemNome.trim() || "Personagem",
+      currentHp: Math.max(0, Math.floor(vidaAtual)),
+      maxHp: Math.max(1, Math.floor(vidaMaxima)),
+      imageUrl: personagemImagem || "",
+      level: Math.max(1, Math.floor(nivel)),
+      caMod: Math.floor(caModificador),
+      type: typeFromList,
+    });
+    const timer = setTimeout(() => {
+      void addDoc(collection(db, "rooms", CHAT_ROOM_ID, "messages"), {
+        type: "chat",
+        text: `${COMBAT_STATE_PREFIX}${payload}`,
+        senderName: authUser.displayName || authUser.email || "Jogador",
+        uid: authUser.uid,
+        characterUid: targetCharacterUid,
+        createdAt: serverTimestamp(),
+      }).catch((err) => {
+        console.error("Erro ao publicar estado de combate:", err);
+      });
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [
+    authUser,
+    caModificador,
+    charactersList,
+    nivel,
+    personagemImagem,
+    personagemNome,
+    targetCharacterUid,
+    vidaAtual,
+    vidaMaxima,
+  ]);
 
   useEffect(() => {
     if (!authUser) {
@@ -412,7 +506,8 @@ export function App() {
             if (
               data.type === "chat" &&
               typeof data.text === "string" &&
-              data.text.startsWith(COMBAT_CONFIG_PREFIX)
+              (data.text.startsWith(COMBAT_CONFIG_PREFIX) ||
+                data.text.startsWith(COMBAT_STATE_PREFIX))
             ) {
               return null;
             }
@@ -872,6 +967,8 @@ export function App() {
     : undefined;
   const sourceCombatants = isAdmin
     ? combatants
+    : liveCombatantsFromChat.length > 0
+    ? liveCombatantsFromChat
     : publicCombatants && publicCombatants.length > 0
     ? publicCombatants
     : combatants;
@@ -1227,6 +1324,8 @@ export function App() {
                     Math.min(100, combatant.maxHp > 0 ? (combatant.currentHp / combatant.maxHp) * 100 : 0)
                   );
                   const hpPercentRounded = Math.round(hpPercent);
+                  const hpHue = Math.max(0, Math.min(120, (hpPercent / 100) * 120));
+                  const hpBarColor = `hsl(${hpHue}, 85%, 48%)`;
                   const isActive = selectedCombatant?.id === combatant.id;
                   return (
                     <button
@@ -1299,7 +1398,12 @@ export function App() {
                           : `${hpPercentRounded}%`}
                       </span>
                       <span className="combat-token-bar">
-                        <span style={{ width: `${hpPercent}%` }} />
+                        <span
+                          style={{
+                            width: `${hpPercent}%`,
+                            background: `linear-gradient(90deg, ${hpBarColor}, ${hpBarColor})`,
+                          }}
+                        />
                       </span>
                     </button>
                   );
