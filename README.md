@@ -81,7 +81,75 @@ src/
   firebase.ts
 public/
   cards/
+  icons/
 ```
+
+## Customizacao de logo e icones
+
+Voce pode trocar os icones sem alterar codigo, apenas substituindo arquivos nas pastas abaixo.
+
+### Logo do topo (por tema)
+
+Pasta: `public/icons/topbar/`
+
+- `logo-light.png` (modo claro)
+- `logo-dark.png` (modo escuro)
+
+### Icones da barra superior
+
+Pasta: `public/icons/topbar/`
+
+- `nivel.svg`
+- `acertos.svg`
+- `subir-nivel.svg`
+- `editar-decks.svg`
+- `critico.svg`
+
+### Icones dos botoes de acoes do card
+
+Pasta: `public/icons/acoes/`
+
+- `puxar.svg`
+- `reemb.svg`
+- `hint-puxar.svg`
+
+### Icones da area de Vida e CA
+
+Pasta: `public/icons/vida/`
+
+- `vida.svg`
+- `ca.svg`
+
+### Icones dos atributos (icone redondo no topo do card)
+
+Pasta: `public/icons/atributos/`
+
+- `forca.svg`
+- `destreza.svg`
+- `constituicao.svg`
+- `inteligencia.svg`
+- `sabedoria.svg`
+- `carisma.svg`
+
+### Icones dos subatributos (linhas de bonus no card)
+
+Pasta: `public/icons/subatributos/`
+
+- `for-dano.svg`
+- `for-carga.svg`
+- `des-esquiva.svg`
+- `con-vida.svg`
+- `int-investigacao.svg`
+- `int-progresso.svg`
+- `sab-percepcao.svg`
+- `sab-engenhosidade.svg`
+- `sab-criticos.svg`
+- `car-astucia.svg`
+- `car-afinidade.svg`
+
+### Fallback automatico
+
+Se algum arquivo nao existir, a interface usa fallback (FontAwesome/emoji), entao o app nao quebra.
 
 ## Firestore (regras base)
 
