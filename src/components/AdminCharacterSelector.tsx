@@ -10,6 +10,7 @@ interface AdminCharacterSelectorProps {
   charactersList: CharacterListItem[];
   onSelectCharacter: (uid: string) => void | Promise<void>;
   onCreateCharacter: (nome: string, type: "player" | "npc") => void | Promise<unknown>;
+  onDuplicateCharacter: (uid: string) => void | Promise<unknown>;
   onUpdateCharacterType: (uid: string, type: "player" | "npc") => void | Promise<unknown>;
   onDeleteCharacter: (uid: string) => void | Promise<unknown>;
 }
@@ -21,10 +22,12 @@ export function AdminCharacterSelector({
   charactersList,
   onSelectCharacter,
   onCreateCharacter,
+  onDuplicateCharacter,
   onUpdateCharacterType,
   onDeleteCharacter,
 }: AdminCharacterSelectorProps) {
   const [creating, setCreating] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updatingType, setUpdatingType] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -113,6 +116,26 @@ export function AdminCharacterSelector({
         {updatingType
           ? "Atualizando tipo..."
           : `Tipo: ${activeType.toUpperCase()} (trocar)`}
+      </button>
+
+      <button
+        type="button"
+        className="admin-selector-type-btn"
+        disabled={duplicating || charactersList.length === 0}
+        onClick={async () => {
+          if (!activeUid) return;
+          setDuplicating(true);
+          try {
+            await onDuplicateCharacter(activeUid);
+          } catch (err) {
+            console.error("Erro ao copiar ficha:", err);
+            alert("Nao foi possivel copiar a ficha ativa.");
+          } finally {
+            setDuplicating(false);
+          }
+        }}
+      >
+        {duplicating ? "Copiando..." : "Copiar ficha ativa"}
       </button>
 
       <button

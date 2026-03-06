@@ -270,6 +270,7 @@ export function App() {
     handleLogout,
     handleSelectAdminCharacter,
     handleCreateAdminCharacter,
+    handleDuplicateAdminCharacter,
     handleUpdateAdminCharacterType,
     handleDeleteAdminCharacter,
   } = useFirebaseCharacterSync({
@@ -1057,6 +1058,7 @@ export function App() {
           charactersList={charactersList}
           onSelectCharacter={handleSelectAdminCharacter}
           onCreateCharacter={handleCreateAdminCharacter}
+          onDuplicateCharacter={handleDuplicateAdminCharacter}
           onUpdateCharacterType={handleUpdateAdminCharacterType}
           onDeleteCharacter={handleDeleteAdminCharacter}
         />

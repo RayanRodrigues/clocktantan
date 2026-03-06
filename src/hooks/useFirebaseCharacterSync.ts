@@ -434,6 +434,68 @@ export function useFirebaseCharacterSync({
     [authUser, isAdmin, activeCharacterUid, charactersList, loadCharacterFromCloud]
   );
 
+  const handleDuplicateAdminCharacter = useCallback(
+    async (characterUid: string) => {
+      if (!authUser || !isAdmin) return null;
+      if (!characterUid) return null;
+
+      const sourceRef = doc(db, "characters", characterUid);
+      const sourceSnap = await getDoc(sourceRef);
+      if (!sourceSnap.exists()) {
+        throw new Error("Ficha de origem nao encontrada.");
+      }
+
+      const sourceData = sourceSnap.data() as {
+        ownerUid?: string;
+        type?: "player" | "npc";
+        stateJson?: string;
+        state?: Partial<PersistedState>;
+      };
+
+      let duplicatedState: Partial<PersistedState> = {};
+      if (typeof sourceData.stateJson === "string" && sourceData.stateJson.trim()) {
+        try {
+          duplicatedState = JSON.parse(sourceData.stateJson) as Partial<PersistedState>;
+        } catch {
+          duplicatedState = {};
+        }
+      } else if (sourceData.state && typeof sourceData.state === "object") {
+        duplicatedState = sourceData.state;
+      }
+
+      const nomeBase =
+        typeof duplicatedState.personagemNome === "string" &&
+        duplicatedState.personagemNome.trim().length > 0
+          ? duplicatedState.personagemNome.trim()
+          : "Nova ficha";
+      const normalizedCopy = normalizePersistedState({
+        ...duplicatedState,
+        personagemNome: `${nomeBase} (copia)`,
+      });
+      const payload = toCloudState(toFirestoreSafeState(normalizedCopy));
+
+      const newRef = doc(collection(db, "characters"));
+      await setDoc(newRef, {
+        ownerUid: authUser.uid,
+        type: sourceData.type === "npc" ? "npc" : "player",
+        stateJson: JSON.stringify(payload),
+      });
+
+      loadedCloudUidRef.current = null;
+      desiredCharacterUidRef.current = newRef.id;
+      setActiveCharacterUid(newRef.id);
+      setCloudLoading(true);
+      try {
+        await loadCharacterFromCloud(newRef.id);
+      } finally {
+        setCloudLoading(false);
+      }
+
+      return newRef.id;
+    },
+    [authUser, isAdmin, loadCharacterFromCloud]
+  );
+
   return {
     authUser,
     isAdmin,
@@ -445,6 +507,7 @@ export function useFirebaseCharacterSync({
     handleLogout,
     handleSelectAdminCharacter,
     handleCreateAdminCharacter,
+    handleDuplicateAdminCharacter,
     handleUpdateAdminCharacterType,
     handleDeleteAdminCharacter,
   };
